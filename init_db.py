@@ -10,6 +10,8 @@ def init_database():
     config = Config()
     db_dir = os.path.join(os.path.dirname(__file__), 'instance')
     os.makedirs(db_dir, exist_ok=True)
+    os.makedirs(config.TESTS_FOLDER, exist_ok=True)
+    os.makedirs(config.UPLOAD_FOLDER, exist_ok=True)
 
     app = create_app(config)
 

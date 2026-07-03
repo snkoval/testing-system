@@ -8,4 +8,5 @@ instance/
 .pytest_cache/
 app/uploads/*
 !app/uploads/.gitkeep
+tests_files/
 
