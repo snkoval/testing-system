@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Смена пароля{% endblock %}
+
+{% block content %}
+<h1>Смена пароля</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="flash flash-{{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<form method="POST" action="/teacher/settings">
+    <div class="form-group">
+        <label for="old_password">Старый пароль</label>
+        <input type="password" id="old_password" name="old_password" required>
+    </div>
+    <div class="form-group">
+        <label for="new_password">Новый пароль</label>
+        <input type="password" id="new_password" name="new_password" required>
+    </div>
+    <div class="form-group">
+        <label for="confirm_password">Подтвердите пароль</label>
+        <input type="password" id="confirm_password" name="confirm_password" required>
+    </div>
+    <button type="submit">Изменить пароль</button>
+</form>
+<p><a href="/teacher/">Назад</a></p>
+{% endblock %}

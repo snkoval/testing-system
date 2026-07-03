@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Вход для ученика{% endblock %}
+
+{% block content %}
+<h1>Вход для ученика</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="flash flash-{{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<form method="POST" action="/login">
+    <div class="form-group">
+        <label for="login">Логин</label>
+        <input type="text" id="login" name="login" required>
+    </div>
+    <div class="form-group">
+        <label for="password">Пароль</label>
+        <input type="password" id="password" name="password" required>
+    </div>
+    <button type="submit">Войти</button>
+</form>
+{% endblock %}
