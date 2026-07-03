@@ -5,4 +5,7 @@ venv/
 .env
 *.db
 instance/
+.pytest_cache/
+app/uploads/*
+!app/uploads/.gitkeep
 
