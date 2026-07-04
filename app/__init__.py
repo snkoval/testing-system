@@ -4,6 +4,7 @@ from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 
 from app.config import Config, TestConfig
+from app.utils import is_lesson_accessible
 
 db = SQLAlchemy()
 
@@ -15,6 +16,10 @@ def create_app(config_class=Config):
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     db.init_app(app)
+
+    @app.context_processor
+    def inject_globals():
+        return {'is_lesson_accessible': is_lesson_accessible}
 
     from app.auth import bp as auth_bp
     app.register_blueprint(auth_bp)

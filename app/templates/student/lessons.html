@@ -4,5 +4,18 @@
 
 {% block content %}
 <h1>Уроки</h1>
+
+{% if lessons %}
+<ul>
+    {% for l in lessons %}
+    <li>
+        <a href="/lessons/{{ l.id }}">{{ l.order_number }}. {{ l.title }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Доступных уроков нет.</p>
+{% endif %}
+
 <p><a href="/logout">Выйти</a></p>
 {% endblock %}

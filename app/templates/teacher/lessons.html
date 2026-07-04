@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Уроки{% endblock %}
+
+{% block content %}
+<h1>Уроки</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="flash flash-{{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<p><a href="/teacher/lessons/create">Создать урок</a></p>
+
+{% if lessons %}
+<table>
+    <thead>
+        <tr>
+            <th>№</th>
+            <th>Тема</th>
+            <th>Статус</th>
+            <th>Срок доступа</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for l in lessons %}
+        <tr>
+            <td>{{ l.order_number }}</td>
+            <td>{{ l.title }}</td>
+            <td>
+                {% if l.is_open %}
+                    {% if is_lesson_accessible(l) %}
+                        Открыт
+                    {% else %}
+                        Истёк
+                    {% endif %}
+                {% else %}
+                    Закрыт
+                {% endif %}
+            </td>
+            <td>
+                {% if l.is_open %}
+                    {% if l.access_days is none %}
+                        Бессрочно
+                    {% else %}
+                        {{ l.access_days }} дн.
+                    {% endif %}
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+            <td>
+                <a href="/teacher/lessons/{{ l.id }}/edit">Редактировать</a>
+                <form method="post" action="/teacher/lessons/{{ l.id }}/access" style="display:inline">
+                    {% if l.is_open %}
+                    <input type="hidden" name="action" value="close">
+                    <button type="submit">Закрыть</button>
+                    {% else %}
+                    <input type="hidden" name="action" value="open">
+                    <input type="number" name="access_days" placeholder="дней (пусто = бессрочно)" min="1">
+                    <button type="submit">Открыть</button>
+                    {% endif %}
+                </form>
+                <form method="post" action="/teacher/lessons/{{ l.id }}/delete" style="display:inline"
+                      onsubmit="return confirm('Удалить урок «{{ l.title }}»?')">
+                    <button type="submit">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Уроков пока нет.</p>
+{% endif %}
+
+<p><a href="/teacher/">Назад</a></p>
+{% endblock %}

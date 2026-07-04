@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}{% if lesson %}Редактирование урока{% else %}Новый урок{% endif %}{% endblock %}
+
+{% block content %}
+<h1>{% if lesson %}Редактирование урока{% else %}Новый урок{% endif %}</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="flash flash-{{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<form method="POST" action="{% if lesson %}/teacher/lessons/{{ lesson.id }}/edit{% else %}/teacher/lessons/create{% endif %}">
+    <div class="form-group">
+        <label for="order_number">Порядковый номер</label>
+        <input type="number" id="order_number" name="order_number" required min="1"
+               value="{{ lesson.order_number if lesson else '' }}">
+    </div>
+    <div class="form-group">
+        <label for="title">Тема урока</label>
+        <input type="text" id="title" name="title" required
+               value="{{ lesson.title if lesson else '' }}">
+    </div>
+    <div class="form-group">
+        <label for="theory_url">Ссылка на теорию (необязательно)</label>
+        <input type="url" id="theory_url" name="theory_url"
+               value="{{ lesson.theory_url if lesson and lesson.theory_url else '' }}">
+    </div>
+    <button type="submit">Сохранить</button>
+</form>
+
+<p><a href="/teacher/lessons">Назад</a></p>
+{% endblock %}
