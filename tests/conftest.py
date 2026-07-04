@@ -1,4 +1,5 @@
 import os
+import sys
 import tempfile
 
 import pytest
@@ -17,6 +18,7 @@ def tests_folder():
 def app(tests_folder):
     app = create_app(TestConfig)
     app.config['TESTS_FOLDER'] = tests_folder
+    app.config['PYTHON_EXEC'] = sys.executable
     os.makedirs(tests_folder, exist_ok=True)
     with app.app_context():
         db.create_all()

@@ -56,7 +56,7 @@ class TestIsLessonAccessible:
         lesson = Lesson(
             order_number=1, title='Test', is_open=True,
             access_days=3,
-            opened_at=datetime.now(timezone.utc) - timedelta(days=3)
+            opened_at=datetime.now(timezone.utc) - timedelta(days=3) + timedelta(seconds=5)
         )
         assert is_lesson_accessible(lesson)
 
