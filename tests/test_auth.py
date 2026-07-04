@@ -24,6 +24,7 @@ def student(app):
             group_id=g.id,
             login='7A_1gr_1',
             password_hash=generate_password_hash('abc123'),
+            password_plain='abc123',
             last_name='Иванов',
             first_name='Иван',
             seq_number=1

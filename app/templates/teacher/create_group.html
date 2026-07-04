@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Создание группы{% endblock %}
+
+{% block content %}
+<h1>Создание группы</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="flash flash-{{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<form method="POST" action="/teacher/groups/create">
+    <div class="form-group">
+        <label for="class_number">Номер класса (1–2 цифры)</label>
+        <input type="text" id="class_number" name="class_number" required maxlength="2"
+               pattern="\d{1,2}" placeholder="7">
+    </div>
+    <div class="form-group">
+        <label for="class_letter">Литера класса (заглавная буква)</label>
+        <input type="text" id="class_letter" name="class_letter" required maxlength="1"
+               placeholder="A">
+    </div>
+    <div class="form-group">
+        <label for="group_number">Номер группы (одна цифра)</label>
+        <input type="text" id="group_number" name="group_number" required maxlength="1"
+               pattern="\d" placeholder="1">
+    </div>
+    <button type="submit">Создать</button>
+</form>
+<p>Маска: <code>&lt;класс&gt;_&lt;группа&gt;gr</code> &mdash; например <code>7A_1gr</code></p>
+<p><a href="/teacher/groups">Назад</a></p>
+{% endblock %}

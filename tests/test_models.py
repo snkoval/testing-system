@@ -55,6 +55,7 @@ class TestStudent:
                 group_id=g.id,
                 login='7A_1gr_1',
                 password_hash='hash',
+                password_plain='abc123',
                 last_name='Иванов',
                 first_name='Иван',
                 seq_number=1
@@ -73,8 +74,10 @@ class TestStudent:
             db.session.add(g)
             db.session.commit()
             s1 = Student(group_id=g.id, login='7A_1gr_1', password_hash='h',
+                         password_plain='abc123',
                          last_name='А', first_name='А', seq_number=1)
             s2 = Student(group_id=g.id, login='7A_1gr_1', password_hash='h',
+                         password_plain='def456',
                          last_name='Б', first_name='Б', seq_number=2)
             db.session.add_all([s1, s2])
             with pytest.raises(Exception):
@@ -86,6 +89,7 @@ class TestStudent:
             db.session.add(g)
             db.session.commit()
             s = Student(group_id=g.id, login='7A_1gr_1', password_hash='h',
+                        password_plain='abc',
                         last_name='И', first_name='И', seq_number=1)
             db.session.add(s)
             db.session.commit()
@@ -192,6 +196,7 @@ class TestSubmission:
             db.session.add(l)
             db.session.commit()
             s = Student(group_id=g.id, login='7A_1gr_1', password_hash='h',
+                        password_plain='abc',
                         last_name='И', first_name='И', seq_number=1)
             db.session.add(s)
             t = Task(lesson_id=l.id, letter_index='A', short_title='T',
@@ -217,6 +222,7 @@ class TestSubmission:
             db.session.add(l)
             db.session.commit()
             s = Student(group_id=g.id, login='7A_1gr_1', password_hash='h',
+                        password_plain='abc',
                         last_name='И', first_name='И', seq_number=1)
             db.session.add(s)
             t = Task(lesson_id=l.id, letter_index='A', short_title='T',

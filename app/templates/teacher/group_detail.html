@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Группа {{ group.name }}{% endblock %}
+
+{% block content %}
+<h1>Группа {{ group.name }}</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="flash flash-{{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<h2>Добавить ученика</h2>
+<form method="POST" action="/teacher/groups/{{ group.id }}/add">
+    <div class="form-group">
+        <label for="last_name">Фамилия</label>
+        <input type="text" id="last_name" name="last_name" required>
+    </div>
+    <div class="form-group">
+        <label for="first_name">Имя</label>
+        <input type="text" id="first_name" name="first_name" required>
+    </div>
+    <button type="submit">Добавить</button>
+</form>
+
+<p><a href="/teacher/groups/{{ group.id }}/bulk-add">Массовое создание учеников</a></p>
+
+<h2>Ученики</h2>
+{% if students %}
+<table>
+    <thead>
+        <tr>
+            <th>№</th>
+            <th>Логин</th>
+            <th>Пароль</th>
+            <th>Фамилия</th>
+            <th>Имя</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in students %}
+        <tr>
+            <td>{{ s.seq_number }}</td>
+            <td>{{ s.login }}</td>
+            <td>{{ s.password_plain }}</td>
+            <td>{{ s.last_name }}</td>
+            <td>{{ s.first_name }}</td>
+            <td>
+                <form method="post" action="/teacher/students/{{ s.id }}/password" style="display:inline">
+                    <input type="text" name="new_password" maxlength="6" placeholder="новый пароль">
+                    <button type="submit">Сменить</button>
+                </form>
+                <form method="post" action="/teacher/students/{{ s.id }}/reset-password" style="display:inline">
+                    <button type="submit">Сбросить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Учеников пока нет.</p>
+{% endif %}
+
+<p><a href="/teacher/groups">Назад к группам</a></p>
+{% endblock %}

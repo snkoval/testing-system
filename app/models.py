@@ -31,6 +31,7 @@ class Student(db.Model):
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=False)
     login = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
+    password_plain = db.Column(db.String(20), nullable=False)
     last_name = db.Column(db.String(80), nullable=False)
     first_name = db.Column(db.String(80), nullable=False)
     seq_number = db.Column(db.Integer, nullable=False)

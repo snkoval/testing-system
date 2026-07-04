@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Массовое создание учеников{% endblock %}
+
+{% block content %}
+<h1>Массовое создание — группа {{ group.name }}</h1>
+
+<form method="POST" action="/teacher/groups/{{ group.id }}/bulk-add">
+    <div class="form-group">
+        <label for="students_data">Список учеников (по строке: <code>Фамилия Имя</code>)</label>
+        <textarea id="students_data" name="students_data" rows="10" cols="40"
+                  placeholder="Иванов Иван&#10;Петров Пётр"></textarea>
+    </div>
+    <button type="submit">Создать</button>
+</form>
+
+<p><a href="/teacher/groups/{{ group.id }}">Назад</a></p>
+{% endblock %}
