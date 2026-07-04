@@ -232,6 +232,7 @@ class TestStudentLessonList:
         client.post('/login', data={'login': '7A_1gr_1', 'password': 'abc123'})
         response = client.get('/lessons')
         assert response.status_code == 200
+        assert b'\xd0\x9e\xd1\x82\xd0\xba\xd1\x80\xd1\x8b\xd1\x82\xd1\x8b\xd0\xb9 \xd1\x83\xd1\x80\xd0\xbe\xd0\xba' in response.data
 
     def test_student_does_not_see_closed_lesson(self, app, client):
         with app.app_context():
@@ -251,6 +252,7 @@ class TestStudentLessonList:
         client.post('/login', data={'login': '7A_1gr_1', 'password': 'abc123'})
         response = client.get('/lessons')
         assert response.status_code == 200
+        assert b'\xd0\x97\xd0\xb0\xd0\xba\xd1\x80\xd1\x8b\xd1\x82\xd1\x8b\xd0\xb9 \xd1\x83\xd1\x80\xd0\xbe\xd0\xba' not in response.data
 
     def test_student_does_not_see_expired_lesson(self, app, client):
         with app.app_context():
@@ -274,3 +276,4 @@ class TestStudentLessonList:
         client.post('/login', data={'login': '7A_1gr_1', 'password': 'abc123'})
         response = client.get('/lessons')
         assert response.status_code == 200
+        assert b'\xd0\x9f\xd1\x80\xd0\xbe\xd1\x81\xd1\x80\xd0\xbe\xd1\x87\xd0\xb5\xd0\xbd\xd0\xbd\xd1\x8b\xd0\xb9 \xd1\x83\xd1\x80\xd0\xbe\xd0\xba' not in response.data
