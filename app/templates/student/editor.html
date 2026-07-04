@@ -1,0 +1,20 @@
+<div class="editor-container">
+    <div class="editor-controls">
+        <label for="language-select">Язык:</label>
+        <select id="language-select" name="language" onchange="changeLanguage()">
+            <option value="python">Python</option>
+            <option value="cpp">C++ (GNU GCC Compiler)</option>
+        </select>
+    </div>
+
+    <textarea id="code-editor" name="code" rows="15"
+              placeholder="Введите код программы..."></textarea>
+
+    <div class="editor-actions">
+        <button type="button" onclick="submitCode()">Проверить</button>
+    </div>
+
+    <div class="results-area" id="results-area">
+        <p class="results-placeholder">Результаты проверки появятся здесь.</p>
+    </div>
+</div>

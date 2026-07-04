@@ -100,3 +100,193 @@ button:hover, .btn:hover {
     color: #2e7d32;
     border: 1px solid #2e7d32;
 }
+
+.flash {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 3px;
+}
+
+.flash-error {
+    background-color: #fde8e8;
+    color: #c01c1c;
+    border: 1px solid #c01c1c;
+}
+
+.flash-success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #2e7d32;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.lesson-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 40px);
+}
+
+.lesson-header {
+    flex-shrink: 0;
+}
+
+.lesson-layout {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+}
+
+.frame-tasks {
+    flex: 0 0 220px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    padding: 10px;
+    overflow-y: auto;
+    background-color: var(--light-bg);
+}
+
+.frame-tasks h3 {
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.task-list {
+    list-style: none;
+}
+
+.task-list-item {
+    padding: 6px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-bottom: 3px;
+}
+
+.task-list-item:hover {
+    background-color: #d0dffa;
+}
+
+.task-list-item.active {
+    background-color: var(--primary-color);
+}
+
+.task-list-item.active a {
+    color: #fff;
+}
+
+.frame-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+.frame-statement {
+    flex: 1;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    padding: 15px;
+    overflow-y: auto;
+    background-color: #fff;
+}
+
+.frame-editor {
+    flex: 0 0 300px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    padding: 10px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.statement-header h2 {
+    margin-bottom: 15px;
+}
+
+.statement-section {
+    margin-bottom: 20px;
+}
+
+.statement-section h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--light-bg);
+    padding-bottom: 4px;
+}
+
+.statement-section p {
+    white-space: pre-wrap;
+}
+
+.limits-table {
+    width: auto;
+}
+
+.limits-table td {
+    border: none;
+    padding: 2px 12px 2px 0;
+}
+
+.examples-table pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.editor-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 8px;
+}
+
+.editor-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.editor-controls label {
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+#code-editor {
+    flex: 1;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 14px;
+    resize: none;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    padding: 8px;
+}
+
+.editor-actions {
+    flex-shrink: 0;
+}
+
+.results-area {
+    flex: 0 0 80px;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    padding: 8px;
+    overflow-y: auto;
+    background-color: var(--light-bg);
+    font-size: 14px;
+}
+
+.results-placeholder {
+    color: #888;
+}

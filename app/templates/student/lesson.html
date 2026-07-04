@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lesson.title }}{% endblock %}
+
+{% block content %}
+<div class="lesson-page">
+    <div class="lesson-header">
+        <h1>{{ lesson.order_number }}. {{ lesson.title }}</h1>
+        {% if lesson.theory_url %}
+        <p><a href="{{ lesson.theory_url }}" target="_blank">Теоретический материал</a></p>
+        {% endif %}
+    </div>
+
+    <div class="lesson-layout">
+        <div class="frame frame-tasks" id="frame-tasks">
+            <h3>Задачи</h3>
+            <ul class="task-list" id="task-list">
+                {% for t in tasks %}
+                <li class="task-list-item{% if t.id == first_task.id %} active{% endif %}"
+                    data-task-id="{{ t.id }}">
+                    <a href="javascript:void(0)"
+                       onclick="loadTask({{ t.id }})">
+                        {{ t.letter_index }}. {{ t.short_title }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="frame frame-main" id="frame-main">
+            <div class="frame frame-statement" id="frame-statement">
+                {% if first_task %}
+                <div id="statement-content">
+                    {% include 'student/task_statement.html' with context %}
+                </div>
+                {% else %}
+                <p>В этом уроке пока нет задач.</p>
+                {% endif %}
+            </div>
+
+            <div class="frame frame-editor" id="frame-editor">
+                {% include 'student/editor.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<p><a href="/lessons">Назад к урокам</a> | <a href="/logout">Выйти</a></p>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function loadTask(taskId) {
+    fetch('/lessons/{{ lesson.id }}/tasks/' + taskId)
+        .then(r => r.text())
+        .then(html => {
+            document.getElementById('statement-content').innerHTML = html;
+            document.querySelectorAll('.task-list-item').forEach(li => {
+                li.classList.toggle('active', li.dataset.taskId == taskId);
+            });
+        })
+        .catch(err => console.error('Error loading task:', err));
+}
+</script>
+{% endblock %}

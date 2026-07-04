@@ -1,0 +1,65 @@
+<div class="task-statement" id="task-statement">
+    <input type="hidden" id="current-task-id" value="{{ task.id }}">
+
+    <div class="statement-header">
+        <h2>{{ task.letter_index }}. {{ task.short_title }}</h2>
+    </div>
+
+    <section class="statement-section" id="section-limits">
+        <h3>Ограничения</h3>
+        <table class="limits-table">
+            <tr>
+                <td>Время:</td>
+                <td>{{ task.time_limit }} с</td>
+            </tr>
+            <tr>
+                <td>Память:</td>
+                <td>{{ task.memory_limit }} КБ</td>
+            </tr>
+        </table>
+    </section>
+
+    <section class="statement-section" id="section-problem">
+        <h3>Условие</h3>
+        <p>{{ task.problem_text }}</p>
+    </section>
+
+    <section class="statement-section" id="section-input">
+        <h3>Входные данные</h3>
+        <p>{{ task.input_description }}</p>
+    </section>
+
+    <section class="statement-section" id="section-output">
+        <h3>Результат</h3>
+        <p>{{ task.output_description }}</p>
+    </section>
+
+    {% if examples %}
+    <section class="statement-section" id="section-examples">
+        <h3>Примеры</h3>
+        <table class="examples-table">
+            <thead>
+                <tr>
+                    <th>Входные данные</th>
+                    <th>Результат</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inp, out in examples %}
+                <tr>
+                    <td><pre>{{ inp }}</pre></td>
+                    <td><pre>{{ out }}</pre></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endif %}
+
+    {% if task.notes %}
+    <section class="statement-section" id="section-notes">
+        <h3>Пояснения</h3>
+        <p>{{ task.notes }}</p>
+    </section>
+    {% endif %}
+</div>
