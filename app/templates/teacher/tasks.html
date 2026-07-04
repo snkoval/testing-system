@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Задачи — {{ lesson.title }}{% endblock %}
+
+{% block content %}
+<h1>Задачи урока «{{ lesson.title }}»</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="flash flash-{{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<p><a href="/teacher/lessons/{{ lesson.id }}/tasks/create">Создать задачу</a></p>
+
+{% if tasks %}
+<table>
+    <thead>
+        <tr>
+            <th>Буква</th>
+            <th>Название</th>
+            <th>Тестов</th>
+            <th>Лимит (с / КБ)</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in tasks %}
+        <tr>
+            <td>{{ t.letter_index }}</td>
+            <td>{{ t.short_title }}</td>
+            <td>{{ t.tests_count }}</td>
+            <td>{{ t.time_limit }} / {{ t.memory_limit }}</td>
+            <td>
+                <a href="/teacher/tasks/{{ t.id }}/edit">Редактировать</a>
+                <a href="/teacher/tasks/{{ t.id }}/tests">Тесты</a>
+                <form method="post" action="/teacher/tasks/{{ t.id }}/delete" style="display:inline"
+                      onsubmit="return confirm('Удалить задачу {{ t.letter_index }}?')">
+                    <button type="submit">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Задач пока нет.</p>
+{% endif %}
+
+<p><a href="/teacher/lessons">Назад к урокам</a></p>
+{% endblock %}

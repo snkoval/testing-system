@@ -3,9 +3,10 @@ import re
 from flask import Blueprint, render_template, request, redirect, session, flash, abort
 
 from app import db
-from app.models import Teacher, Group, Student, Lesson
+from app.models import Teacher, Group, Student, Lesson, Task
 from app.decorators import login_required_teacher
 from app.utils import generate_password, generate_login, is_lesson_accessible
+from app.test_files import get_tests, get_test_count, add_test, update_test, delete_test
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime, timezone
 
@@ -259,6 +260,182 @@ def delete_lesson(lesson_id):
     db.session.commit()
     flash(f'Урок «{title}» удалён', 'success')
     return redirect('/teacher/lessons')
+
+
+# ── Task management ────────────────────────────────────────────────────
+
+
+@bp.route('/lessons/<int:lesson_id>/tasks')
+@login_required_teacher
+def tasks(lesson_id):
+    lesson = db.session.get(Lesson, lesson_id)
+    if lesson is None:
+        abort(404)
+    tasks_list = Task.query.filter_by(lesson_id=lesson_id) \
+        .order_by(Task.letter_index).all()
+    for t in tasks_list:
+        t.tests_count = get_test_count(t.id)
+    return render_template('teacher/tasks.html', lesson=lesson, tasks=tasks_list)
+
+
+@bp.route('/lessons/<int:lesson_id>/tasks/create', methods=['GET', 'POST'])
+@login_required_teacher
+def create_task(lesson_id):
+    lesson = db.session.get(Lesson, lesson_id)
+    if lesson is None:
+        abort(404)
+
+    if request.method == 'POST':
+        short_title = request.form.get('short_title', '').strip()
+        problem_text = request.form.get('problem_text', '').strip()
+        input_description = request.form.get('input_description', '').strip()
+        output_description = request.form.get('output_description', '').strip()
+        notes = request.form.get('notes', '').strip()
+        time_limit_raw = request.form.get('time_limit', '').strip()
+        memory_limit_raw = request.form.get('memory_limit', '').strip()
+
+        existing = Task.query.filter_by(lesson_id=lesson_id).all()
+
+        if len(existing) >= 20:
+            flash('Максимум 20 задач на урок', 'error')
+            return render_template('teacher/task_form.html', lesson=lesson)
+
+        if not short_title:
+            flash('Краткое название обязательно', 'error')
+            return render_template('teacher/task_form.html', lesson=lesson)
+        if not problem_text:
+            flash('Текст условия обязателен', 'error')
+            return render_template('teacher/task_form.html', lesson=lesson)
+        if not input_description:
+            flash('Описание входных данных обязательно', 'error')
+            return render_template('teacher/task_form.html', lesson=lesson)
+        if not output_description:
+            flash('Описание результата обязательно', 'error')
+            return render_template('teacher/task_form.html', lesson=lesson)
+
+        existing_letters = [t.letter_index for t in existing]
+        next_letter = chr(ord(max(existing_letters)) + 1) if existing_letters else 'A'
+
+        time_limit = int(time_limit_raw) if time_limit_raw.isdigit() else 1
+        memory_limit = int(memory_limit_raw) if memory_limit_raw.isdigit() else 256
+
+        t = Task(
+            lesson_id=lesson_id,
+            letter_index=next_letter,
+            short_title=short_title,
+            problem_text=problem_text,
+            input_description=input_description,
+            output_description=output_description,
+            notes=notes or None,
+            time_limit=time_limit,
+            memory_limit=memory_limit,
+        )
+        db.session.add(t)
+        db.session.commit()
+        flash(f'Задача {next_letter} создана', 'success')
+        return redirect(f'/teacher/lessons/{lesson_id}/tasks')
+
+    return render_template('teacher/task_form.html', lesson=lesson)
+
+
+@bp.route('/tasks/<int:task_id>/edit', methods=['GET', 'POST'])
+@login_required_teacher
+def edit_task(task_id):
+    task = db.session.get(Task, task_id)
+    if task is None:
+        abort(404)
+
+    if request.method == 'POST':
+        short_title = request.form.get('short_title', '').strip()
+        problem_text = request.form.get('problem_text', '').strip()
+        input_description = request.form.get('input_description', '').strip()
+        output_description = request.form.get('output_description', '').strip()
+        notes = request.form.get('notes', '').strip()
+        time_limit_raw = request.form.get('time_limit', '').strip()
+        memory_limit_raw = request.form.get('memory_limit', '').strip()
+
+        if not short_title:
+            flash('Краткое название обязательно', 'error')
+            return render_template('teacher/task_form.html', task=task)
+        if not problem_text:
+            flash('Текст условия обязателен', 'error')
+            return render_template('teacher/task_form.html', task=task)
+        if not input_description:
+            flash('Описание входных данных обязательно', 'error')
+            return render_template('teacher/task_form.html', task=task)
+        if not output_description:
+            flash('Описание результата обязательно', 'error')
+            return render_template('teacher/task_form.html', task=task)
+
+        task.short_title = short_title
+        task.problem_text = problem_text
+        task.input_description = input_description
+        task.output_description = output_description
+        task.notes = notes or None
+        task.time_limit = int(time_limit_raw) if time_limit_raw.isdigit() else 1
+        task.memory_limit = int(memory_limit_raw) if memory_limit_raw.isdigit() else 256
+        db.session.commit()
+        flash('Задача обновлена', 'success')
+        return redirect(f'/teacher/lessons/{task.lesson_id}/tasks')
+
+    return render_template('teacher/task_form.html', task=task)
+
+
+@bp.route('/tasks/<int:task_id>/delete', methods=['POST'])
+@login_required_teacher
+def delete_task(task_id):
+    task = db.session.get(Task, task_id)
+    if task is None:
+        abort(404)
+    lesson_id = task.lesson_id
+    letter = task.letter_index
+    db.session.delete(task)
+    db.session.commit()
+    flash(f'Задача {letter} удалена', 'success')
+    return redirect(f'/teacher/lessons/{lesson_id}/tasks')
+
+
+# ── Test file management ───────────────────────────────────────────────
+
+
+@bp.route('/tasks/<int:task_id>/tests', methods=['GET', 'POST'])
+@login_required_teacher
+def manage_tests(task_id):
+    task = db.session.get(Task, task_id)
+    if task is None:
+        abort(404)
+
+    if request.method == 'POST':
+        action = request.form.get('action', '')
+
+        if action == 'add':
+            input_data = request.form.get('input_data', '')
+            expected_output = request.form.get('expected_output', '')
+            existing = get_tests(task_id)
+            next_num = max((t[0] for t in existing), default=0) + 1
+            add_test(task_id, next_num, input_data, expected_output)
+            flash(f'Тест {next_num} добавлен', 'success')
+
+        elif action == 'edit':
+            test_num = int(request.form.get('test_num', '0'))
+            input_data = request.form.get('input_data', '')
+            expected_output = request.form.get('expected_output', '')
+            update_test(task_id, test_num, input_data, expected_output)
+            flash(f'Тест {test_num} обновлён', 'success')
+
+        elif action == 'delete':
+            count = get_test_count(task_id)
+            if count <= 2:
+                flash('Нельзя удалить тест: минимум 2 теста обязательно', 'error')
+            else:
+                test_num = int(request.form.get('test_num', '0'))
+                delete_test(task_id, test_num)
+                flash(f'Тест {test_num} удалён', 'success')
+
+        return redirect(f'/teacher/tasks/{task_id}/tests')
+
+    tests_list = get_tests(task_id)
+    return render_template('teacher/tests.html', task=task, tests=tests_list)
 
 
 @bp.route('/students/<int:student_id>/password', methods=['POST'])

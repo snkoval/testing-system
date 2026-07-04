@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Тесты — Задача {{ task.letter_index }}{% endblock %}
+
+{% block content %}
+<h1>Тесты — Задача {{ task.letter_index }}. {{ task.short_title }}</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="flash flash-{{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+{% if tests %}
+<table>
+    <thead>
+        <tr>
+            <th>№</th>
+            <th>Входные данные</th>
+            <th>Ожидаемый результат</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for num, input_data, expected in tests %}
+        <tr>
+            <td>{{ num }}</td>
+            <td><pre>{{ input_data[:100] }}{% if input_data|length > 100 %}…{% endif %}</pre></td>
+            <td><pre>{{ expected[:100] }}{% if expected|length > 100 %}…{% endif %}</pre></td>
+            <td>
+                <form method="post" action="/teacher/tasks/{{ task.id }}/tests" style="display:inline">
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="test_num" value="{{ num }}">
+                    <button type="submit"
+                            onclick="return confirm('Удалить тест {{ num }}?')">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4">
+                <details>
+                    <summary>Редактировать тест {{ num }}</summary>
+                    <form method="post" action="/teacher/tasks/{{ task.id }}/tests">
+                        <input type="hidden" name="action" value="edit">
+                        <input type="hidden" name="test_num" value="{{ num }}">
+                        <div>
+                            <label>Входные данные:</label><br>
+                            <textarea name="input_data" rows="3" cols="50">{{ input_data }}</textarea>
+                        </div>
+                        <div>
+                            <label>Ожидаемый результат:</label><br>
+                            <textarea name="expected_output" rows="3" cols="50">{{ expected }}</textarea>
+                        </div>
+                        <button type="submit">Сохранить</button>
+                    </form>
+                </details>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Тестов пока нет. Добавьте минимум 2 теста.</p>
+{% endif %}
+
+<h2>Добавить тест</h2>
+<form method="post" action="/teacher/tasks/{{ task.id }}/tests">
+    <input type="hidden" name="action" value="add">
+    <div class="form-group">
+        <label for="input_data">Входные данные</label>
+        <textarea id="input_data" name="input_data" rows="3" cols="50"></textarea>
+    </div>
+    <div class="form-group">
+        <label for="expected_output">Ожидаемый результат</label>
+        <textarea id="expected_output" name="expected_output" rows="3" cols="50"></textarea>
+    </div>
+    <button type="submit">Добавить</button>
+</form>
+
+<p><a href="/teacher/lessons/{{ task.lesson_id }}/tasks">Назад к задачам</a></p>
+{% endblock %}

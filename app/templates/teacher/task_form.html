@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{% if task %}Редактирование задачи{% else %}Новая задача{% endif %}{% endblock %}
+
+{% block content %}
+<h1>{% if task %}Редактирование задачи {{ task.letter_index }}{% else %}Новая задача{% endif %}</h1>
+{% if lesson %}<p>Урок: «{{ lesson.title }}»</p>{% endif %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="flash flash-{{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<form method="POST" action="{% if task %}/teacher/tasks/{{ task.id }}/edit{% else %}/teacher/lessons/{{ lesson.id }}/tasks/create{% endif %}">
+    <div class="form-group">
+        <label for="short_title">Краткое название</label>
+        <input type="text" id="short_title" name="short_title" required
+               value="{{ task.short_title if task else '' }}">
+    </div>
+    <div class="form-group">
+        <label for="problem_text">Текст условия</label>
+        <textarea id="problem_text" name="problem_text" rows="5" required>{{ task.problem_text if task else '' }}</textarea>
+    </div>
+    <div class="form-group">
+        <label for="input_description">Описание входных данных</label>
+        <textarea id="input_description" name="input_description" rows="3" required>{{ task.input_description if task else '' }}</textarea>
+    </div>
+    <div class="form-group">
+        <label for="output_description">Описание результата</label>
+        <textarea id="output_description" name="output_description" rows="3" required>{{ task.output_description if task else '' }}</textarea>
+    </div>
+    <div class="form-group">
+        <label for="notes">Пояснения (необязательно)</label>
+        <textarea id="notes" name="notes" rows="3">{{ task.notes if task and task.notes else '' }}</textarea>
+    </div>
+    <div class="form-group">
+        <label for="time_limit">Лимит времени (сек)</label>
+        <input type="number" id="time_limit" name="time_limit" min="1"
+               value="{{ task.time_limit if task else 1 }}">
+    </div>
+    <div class="form-group">
+        <label for="memory_limit">Лимит памяти (КБ)</label>
+        <input type="number" id="memory_limit" name="memory_limit" min="1"
+               value="{{ task.memory_limit if task else 256 }}">
+    </div>
+    <button type="submit">Сохранить</button>
+</form>
+
+<p><a href="{% if task %}/teacher/lessons/{{ task.lesson_id }}/tasks{% elif lesson %}/teacher/lessons/{{ lesson.id }}/tasks{% else %}/teacher/lessons{% endif %}">Назад</a></p>
+{% endblock %}

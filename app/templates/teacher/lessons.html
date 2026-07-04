@@ -54,6 +54,7 @@
                 {% endif %}
             </td>
             <td>
+                <a href="/teacher/lessons/{{ l.id }}/tasks">Задачи</a>
                 <a href="/teacher/lessons/{{ l.id }}/edit">Редактировать</a>
                 <form method="post" action="/teacher/lessons/{{ l.id }}/access" style="display:inline">
                     {% if l.is_open %}
