@@ -1,9 +1,11 @@
 import re
+import io
+import json
 
-from flask import Blueprint, render_template, request, redirect, session, flash, abort
+from flask import Blueprint, render_template, request, redirect, session, flash, abort, send_file
 
 from app import db
-from app.models import Teacher, Group, Student, Lesson, Task
+from app.models import Teacher, Group, Student, Lesson, Task, Submission
 from app.decorators import login_required_teacher
 from app.utils import generate_password, generate_login, is_lesson_accessible
 from app.test_files import get_tests, get_test_count, add_test, update_test, delete_test
@@ -496,3 +498,134 @@ def settings():
         return redirect('/teacher/settings')
 
     return render_template('teacher/settings.html')
+
+
+# ── Results table and Excel export ─────────────────────────────────────
+
+
+def _build_results_matrix(group_id):
+    group = db.session.get(Group, group_id)
+    if group is None:
+        return None
+
+    students = Student.query.filter_by(group_id=group_id) \
+        .order_by(Student.seq_number).all()
+
+    lessons = Lesson.query.order_by(Lesson.order_number).all()
+    tasks = []
+    for lesson in lessons:
+        lesson_tasks = Task.query.filter_by(lesson_id=lesson.id) \
+            .order_by(Task.letter_index).all()
+        for t in lesson_tasks:
+            tasks.append(t)
+
+    submissions = {}
+    for s in students:
+        subs = Submission.query.filter_by(student_id=s.id).all()
+        submissions[s.id] = {sub.task_id: sub for sub in subs}
+
+    test_counts = {t.id: get_test_count(t.id) for t in tasks}
+
+    matrix = []
+    for s in students:
+        row = {'student': s, 'cells': []}
+        for t in tasks:
+            sub = submissions[s.id].get(t.id)
+            if sub is None:
+                row['cells'].append('')
+            else:
+                try:
+                    result = json.loads(sub.test_results)
+                    passed = result.get('passed', 0)
+                    total = result.get('total_tests', test_counts[t.id])
+                    if result.get('status') == 'ok':
+                        row['cells'].append('OK')
+                    else:
+                        row['cells'].append(f'{passed}/{total}')
+                except (json.JSONDecodeError, TypeError):
+                    row['cells'].append('')
+        matrix.append(row)
+
+    return {
+        'group': group,
+        'students': students,
+        'tasks': tasks,
+        'matrix': matrix,
+    }
+
+
+@bp.route('/results')
+@login_required_teacher
+def results():
+    groups = Group.query.order_by(Group.name).all()
+    group_id = request.args.get('group', type=int)
+
+    data = None
+    if group_id:
+        data = _build_results_matrix(group_id)
+        if data is None:
+            abort(404)
+
+    return render_template('teacher/results.html',
+                           groups=groups, group_id=group_id, data=data)
+
+
+@bp.route('/results/export')
+@login_required_teacher
+def results_export():
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment
+
+    group_id = request.args.get('group', type=int)
+    if not group_id:
+        abort(400)
+
+    data = _build_results_matrix(group_id)
+    if data is None:
+        abort(404)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = data['group'].name
+
+    bold_font = Font(bold=True)
+    center = Alignment(horizontal='center')
+
+    headers = ['Фамилия', 'Имя', 'Логин']
+    for t in data['tasks']:
+        lesson = db.session.get(Lesson, t.lesson_id)
+        header = f'{lesson.title} — {t.letter_index}. {t.short_title}'
+        headers.append(header)
+
+    for col, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=h)
+        cell.font = bold_font
+        cell.alignment = center
+
+    for row_idx, row in enumerate(data['matrix'], 2):
+        s = row['student']
+        ws.cell(row=row_idx, column=1, value=s.last_name)
+        ws.cell(row=row_idx, column=2, value=s.first_name)
+        ws.cell(row=row_idx, column=3, value=s.login)
+        for col_idx, cell_val in enumerate(row['cells'], 4):
+            ws.cell(row=row_idx, column=col_idx, value=cell_val)
+
+    for col in range(1, len(headers) + 1):
+        max_len = len(str(headers[col - 1]))
+        for row_idx in range(2, len(data['matrix']) + 2):
+            val = ws.cell(row=row_idx, column=col).value
+            if val:
+                max_len = max(max_len, len(str(val)))
+        ws.column_dimensions[ws.cell(row=1, column=col).column_letter].width = min(max_len + 2, 40)
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    filename = f'{data["group"].name}_results.xlsx'
+    return send_file(
+        buf,
+        as_attachment=True,
+        download_name=filename,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
