@@ -1,5 +1,12 @@
 <div class="task-statement" id="task-statement">
     <input type="hidden" id="current-task-id" value="{{ task.id }}">
+    {% if submission %}
+    <input type="hidden" id="saved-code" value="{{ submission.code }}">
+    <input type="hidden" id="saved-language" value="{{ submission.language }}">
+    {% else %}
+    <input type="hidden" id="saved-code" value="">
+    <input type="hidden" id="saved-language" value="python">
+    {% endif %}
 
     <div class="statement-header">
         <h2>{{ task.letter_index }}. {{ task.short_title }}</h2>

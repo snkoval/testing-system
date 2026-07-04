@@ -50,6 +50,19 @@
 
 {% block scripts %}
 <script>
+function loadSavedCode() {
+    var savedCode = document.getElementById('saved-code');
+    var savedLang = document.getElementById('saved-language');
+    if (savedCode && savedCode.value) {
+        document.getElementById('code-editor').value = savedCode.value;
+    } else {
+        document.getElementById('code-editor').value = '';
+    }
+    if (savedLang && savedLang.value) {
+        document.getElementById('language-select').value = savedLang.value;
+    }
+}
+
 function loadTask(taskId) {
     fetch('/lessons/{{ lesson.id }}/tasks/' + taskId)
         .then(r => r.text())
@@ -58,8 +71,56 @@ function loadTask(taskId) {
             document.querySelectorAll('.task-list-item').forEach(li => {
                 li.classList.toggle('active', li.dataset.taskId == taskId);
             });
+            loadSavedCode();
         })
         .catch(err => console.error('Error loading task:', err));
 }
+
+function submitCode() {
+    var taskIdEl = document.getElementById('current-task-id');
+    if (!taskIdEl) return;
+    var taskId = taskIdEl.value;
+    var code = document.getElementById('code-editor').value;
+    var language = document.getElementById('language-select').value;
+    var resultsArea = document.getElementById('results-area');
+
+    resultsArea.innerHTML = '<p>Проверка...</p>';
+
+    var formData = new FormData();
+    formData.append('task_id', taskId);
+    formData.append('code', code);
+    formData.append('language', language);
+
+    fetch('/submit', {method: 'POST', body: formData})
+        .then(r => r.json())
+        .then(data => {
+            var html = '<p><strong>Результат:</strong> ' +
+                data.passed + '/' + data.total_tests;
+            if (data.status === 'ok') {
+                html += ' — Все тесты пройдены!';
+            } else {
+                html += ' — Есть ошибки';
+            }
+            html += '</p>';
+            if (data.compile_error) {
+                html += '<pre>' + data.compile_error + '</pre>';
+            }
+            if (data.results && data.results.length > 0) {
+                html += '<table><thead><tr><th>№</th><th>Статус</th></tr></thead><tbody>';
+                data.results.forEach(function(r) {
+                    var icon = r.status === 'passed' ? 'OK' : 'X';
+                    html += '<tr><td>' + r.number + '</td><td>' + icon + ' ' + r.message + '</td></tr>';
+                });
+                html += '</tbody></table>';
+            }
+            resultsArea.innerHTML = html;
+        })
+        .catch(err => {
+            resultsArea.innerHTML = '<p class="error">Ошибка при проверке</p>';
+            console.error('Submit error:', err);
+        });
+}
+
+document.addEventListener('DOMContentLoaded', loadSavedCode);
 </script>
 {% endblock %}

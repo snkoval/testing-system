@@ -1,10 +1,13 @@
-from flask import Blueprint, render_template, abort, redirect
+import json
+
+from flask import Blueprint, render_template, abort, redirect, request, jsonify, session
 
 from app import db
-from app.models import Lesson, Task
+from app.models import Lesson, Task, Student, Submission
 from app.decorators import login_required_student
 from app.utils import is_lesson_accessible
 from app.test_files import get_examples
+from app.checker import check_submission
 
 bp = Blueprint('student', __name__)
 
@@ -29,9 +32,17 @@ def lesson(lesson_id):
         .order_by(Task.letter_index).all()
     first_task = tasks[0] if tasks else None
     examples = get_examples(first_task.id) if first_task else []
+
+    submission = None
+    if first_task:
+        submission = Submission.query.filter_by(
+            student_id=session['student_id'], task_id=first_task.id
+        ).first()
+
     return render_template('student/lesson.html', lesson=lesson,
                            tasks=tasks, first_task=first_task,
-                           task=first_task, examples=examples)
+                           task=first_task, examples=examples,
+                           submission=submission)
 
 
 @bp.route('/lessons/<int:lesson_id>/tasks/<int:task_id>')
@@ -46,5 +57,56 @@ def task_statement(lesson_id, task_id):
     if task is None or task.lesson_id != lesson_id:
         abort(404)
     examples = get_examples(task_id)
+
+    submission = Submission.query.filter_by(
+        student_id=session['student_id'], task_id=task_id
+    ).first()
+
     return render_template('student/task_statement.html', task=task,
-                           examples=examples)
+                           examples=examples, submission=submission)
+
+
+@bp.route('/submit', methods=['POST'])
+@login_required_student
+def submit():
+    task_id = request.form.get('task_id')
+    if not task_id:
+        abort(404)
+
+    task = db.session.get(Task, int(task_id))
+    if task is None:
+        abort(404)
+
+    lesson = db.session.get(Lesson, task.lesson_id)
+    if lesson is None or not is_lesson_accessible(lesson):
+        abort(403)
+
+    code = request.form.get('code')
+    language = request.form.get('language')
+
+    if not code:
+        return jsonify({'error': 'Код не может быть пустым'}), 400
+
+    result = check_submission(code, language, task_id)
+
+    student_id = session['student_id']
+    submission = Submission.query.filter_by(
+        student_id=student_id, task_id=task_id
+    ).first()
+
+    if submission:
+        submission.code = code
+        submission.language = language
+        submission.test_results = json.dumps(result)
+    else:
+        submission = Submission(
+            student_id=student_id,
+            task_id=task_id,
+            code=code,
+            language=language,
+            test_results=json.dumps(result),
+        )
+        db.session.add(submission)
+
+    db.session.commit()
+    return jsonify(result)
