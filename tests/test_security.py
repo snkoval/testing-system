@@ -247,7 +247,8 @@ class TestCSRFProtection:
         csrf_client.get('/teacher/groups/create')
         token = _get_csrf_token(csrf_client)
         resp = csrf_client.post('/teacher/groups/create', data={
-            'name': '7A_1gr', 'csrf_token': token,
+            'class_number': '7', 'class_letter': 'A',
+            'group_number': '1', 'csrf_token': token,
         })
         assert resp.status_code == 302
 
