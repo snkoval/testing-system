@@ -290,3 +290,18 @@ button:hover, .btn:hover {
 .results-placeholder {
     color: #888;
 }
+
+/* CodeMirror */
+.CodeMirror {
+    flex: 1;
+    height: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 14px;
+}
+
+.editor-container .CodeMirror {
+    flex: 1;
+    min-height: 200px;
+}
