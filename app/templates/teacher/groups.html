@@ -33,6 +33,7 @@
                 <a href="/teacher/groups/{{ g.id }}">Открыть</a>
                 <form method="post" action="/teacher/groups/{{ g.id }}/delete" style="display:inline"
                       onsubmit="return confirm('Удалить группу {{ g.name }}?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit">Удалить</button>
                 </form>
             </td>

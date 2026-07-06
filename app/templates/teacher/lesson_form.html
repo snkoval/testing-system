@@ -14,6 +14,7 @@
 {% endwith %}
 
 <form method="POST" action="{% if lesson %}/teacher/lessons/{{ lesson.id }}/edit{% else %}/teacher/lessons/create{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <label for="order_number">Порядковый номер</label>
         <input type="number" id="order_number" name="order_number" required min="1"

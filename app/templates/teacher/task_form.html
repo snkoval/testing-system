@@ -15,6 +15,7 @@
 {% endwith %}
 
 <form method="POST" action="{% if task %}/teacher/tasks/{{ task.id }}/edit{% else %}/teacher/lessons/{{ lesson.id }}/tasks/create{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <label for="short_title">Краткое название</label>
         <input type="text" id="short_title" name="short_title" required

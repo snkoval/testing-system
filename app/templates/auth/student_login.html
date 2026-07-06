@@ -2,6 +2,10 @@
 
 {% block title %}Вход для ученика{% endblock %}
 
+{% block head %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
 {% block content %}
 <h1>Вход для ученика</h1>
 
@@ -14,6 +18,7 @@
 {% endwith %}
 
 <form method="POST" action="/login">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <label for="login">Логин</label>
         <input type="text" id="login" name="login" required>

@@ -90,6 +90,7 @@ function submitCode() {
     formData.append('task_id', taskId);
     formData.append('code', code);
     formData.append('language', language);
+    formData.append('csrf_token', '{{ csrf_token() }}');
 
     fetch('/submit', {method: 'POST', body: formData})
         .then(r => r.json())

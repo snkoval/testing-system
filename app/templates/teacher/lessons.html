@@ -57,6 +57,7 @@
                 <a href="/teacher/lessons/{{ l.id }}/tasks">Задачи</a>
                 <a href="/teacher/lessons/{{ l.id }}/edit">Редактировать</a>
                 <form method="post" action="/teacher/lessons/{{ l.id }}/access" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     {% if l.is_open %}
                     <input type="hidden" name="action" value="close">
                     <button type="submit">Закрыть</button>
@@ -68,6 +69,7 @@
                 </form>
                 <form method="post" action="/teacher/lessons/{{ l.id }}/delete" style="display:inline"
                       onsubmit="return confirm('Удалить урок «{{ l.title }}»?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit">Удалить</button>
                 </form>
             </td>

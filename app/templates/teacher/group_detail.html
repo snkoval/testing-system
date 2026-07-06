@@ -15,6 +15,7 @@
 
 <h2>Добавить ученика</h2>
 <form method="POST" action="/teacher/groups/{{ group.id }}/add">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <label for="last_name">Фамилия</label>
         <input type="text" id="last_name" name="last_name" required>
@@ -51,10 +52,12 @@
             <td>{{ s.first_name }}</td>
             <td>
                 <form method="post" action="/teacher/students/{{ s.id }}/password" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="text" name="new_password" maxlength="6" placeholder="новый пароль">
                     <button type="submit">Сменить</button>
                 </form>
                 <form method="post" action="/teacher/students/{{ s.id }}/reset-password" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit">Сбросить</button>
                 </form>
             </td>

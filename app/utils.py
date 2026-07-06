@@ -1,6 +1,9 @@
 import random
 import string
+import secrets
 from datetime import datetime, timezone, timedelta
+
+from flask import session, abort
 
 
 PASSWORD_CHARS = string.ascii_lowercase + string.digits + '!@#$%^&*'
@@ -27,3 +30,16 @@ def is_lesson_accessible(lesson):
         opened = opened.replace(tzinfo=timezone.utc)
     expiry = opened + timedelta(days=lesson.access_days)
     return now <= expiry
+
+
+def generate_csrf_token():
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(16)
+    return session['csrf_token']
+
+
+def validate_csrf_token():
+    token = session.get('csrf_token')
+    form_token = __import__('flask').request.form.get('csrf_token', '')
+    if not token or not form_token or not secrets.compare_digest(token, form_token):
+        abort(400)

@@ -26,9 +26,11 @@ class Config:
     TEACHER_USERNAME = os.environ.get('TEACHER_USERNAME', 'admin')
     TEACHER_PASSWORD = os.environ.get('TEACHER_PASSWORD', 'admin123')
 
+    CSRF_PROTECTION_ENABLED = True
+
 
 class TestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
-    WTF_CSRF_ENABLED = False
     SECRET_KEY = 'test-secret-key'
+    CSRF_PROTECTION_ENABLED = False

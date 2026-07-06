@@ -14,6 +14,7 @@
 {% endwith %}
 
 <form method="POST" action="/teacher/groups/create">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <label for="class_number">Номер класса (1–2 цифры)</label>
         <input type="text" id="class_number" name="class_number" required maxlength="2"

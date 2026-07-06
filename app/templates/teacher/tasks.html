@@ -38,6 +38,7 @@
                 <a href="/teacher/tasks/{{ t.id }}/tests">Тесты</a>
                 <form method="post" action="/teacher/tasks/{{ t.id }}/delete" style="display:inline"
                       onsubmit="return confirm('Удалить задачу {{ t.letter_index }}?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit">Удалить</button>
                 </form>
             </td>

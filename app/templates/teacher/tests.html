@@ -31,6 +31,7 @@
             <td><pre>{{ expected[:100] }}{% if expected|length > 100 %}…{% endif %}</pre></td>
             <td>
                 <form method="post" action="/teacher/tasks/{{ task.id }}/tests" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="test_num" value="{{ num }}">
                     <button type="submit"
@@ -43,6 +44,7 @@
                 <details>
                     <summary>Редактировать тест {{ num }}</summary>
                     <form method="post" action="/teacher/tasks/{{ task.id }}/tests">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="action" value="edit">
                         <input type="hidden" name="test_num" value="{{ num }}">
                         <div>
@@ -67,6 +69,7 @@
 
 <h2>Добавить тест</h2>
 <form method="post" action="/teacher/tasks/{{ task.id }}/tests">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="action" value="add">
     <div class="form-group">
         <label for="input_data">Входные данные</label>

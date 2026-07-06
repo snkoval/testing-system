@@ -6,6 +6,7 @@
 <h1>Массовое создание — группа {{ group.name }}</h1>
 
 <form method="POST" action="/teacher/groups/{{ group.id }}/bulk-add">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <label for="students_data">Список учеников (по строке: <code>Фамилия Имя</code>)</label>
         <textarea id="students_data" name="students_data" rows="10" cols="40"

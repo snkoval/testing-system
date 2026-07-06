@@ -14,6 +14,7 @@
 {% endwith %}
 
 <form method="POST" action="/teacher/settings">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
         <label for="old_password">Старый пароль</label>
         <input type="password" id="old_password" name="old_password" required>
