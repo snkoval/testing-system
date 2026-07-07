@@ -40,7 +40,7 @@ def setup_lesson_task(app):
                  short_title='Sum', problem_text='Sum of two',
                  input_description='Two ints',
                  output_description='Their sum',
-                 time_limit=2, memory_limit=256)
+                 time_limit=2, memory_limit=262144)
         db.session.add(t)
         db.session.commit()
         add_test(t.id, 1, '2 3\n', '5\n')

@@ -32,7 +32,7 @@ def task_with_tests(app, lesson):
             input_description='Two integers',
             output_description='Their sum',
             time_limit=2,
-            memory_limit=256,
+            memory_limit=262144,
         )
         db.session.add(t)
         db.session.commit()
@@ -107,6 +107,40 @@ class TestPythonEmptyInput:
             result = check_submission(code, 'python', task_with_tests)
         assert result['status'] == 'error'
         assert result['passed'] == 0
+
+
+@pytest.fixture
+def task_low_memory(app, lesson):
+    with app.app_context():
+        t = Task(
+            lesson_id=lesson,
+            letter_index='B',
+            short_title='Mem',
+            problem_text='Memory test',
+            input_description='None',
+            output_description='ok',
+            time_limit=5,
+            memory_limit=40960,
+        )
+        db.session.add(t)
+        db.session.commit()
+        add_test(t.id, 1, '', 'ok\n')
+        return t.id
+
+
+class TestPythonMemoryLimit:
+    def test_memory_exceeded(self, app, task_low_memory):
+        code = (
+            'x = bytearray(100 * 1024 * 1024)\n'
+            'import time; time.sleep(2)\n'
+            'print("ok")\n'
+        )
+        with app.app_context():
+            result = check_submission(code, 'python', task_low_memory)
+        assert result['status'] == 'error'
+        ml = [r for r in result['results']
+              if r['status'] == 'memory_limit']
+        assert len(ml) == 1
 
 
 # ── C++ tests (skipped if g++ not available) ───────────────────────────
