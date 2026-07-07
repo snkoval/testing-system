@@ -2,5 +2,6 @@ flask
 flask-sqlalchemy
 openpyxl
 psutil
+waitress
 pytest
 pytest-flask

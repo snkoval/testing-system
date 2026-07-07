@@ -10,8 +10,12 @@ db = SQLAlchemy()
 
 
 def create_app(config_class=Config):
-    app = Flask(__name__)
+    instance_path = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                 'instance')
+    app = Flask(__name__, instance_path=instance_path,
+                instance_relative_config=True)
     app.config.from_object(config_class)
+    app.config.from_pyfile('config.py', silent=True)
 
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
