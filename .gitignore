@@ -4,7 +4,7 @@ __pycache__/
 venv/
 .env
 *.db
-instance/
+instance/*
 !instance/config.example.py
 .pytest_cache/
 app/uploads/*
