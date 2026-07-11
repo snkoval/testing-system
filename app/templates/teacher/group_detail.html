@@ -29,6 +29,25 @@
 
 <p><a href="/teacher/groups/{{ group.id }}/bulk-add">Массовое создание учеников</a></p>
 
+<h2>Разделы</h2>
+<form method="POST" action="/teacher/groups/{{ group.id }}/sections">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if all_sections %}
+    {% for s in all_sections %}
+    <label>
+        <input type="checkbox" name="section_ids" value="{{ s.id }}"
+               {% if s.id in assigned_ids %}checked{% endif %}>
+        {{ s.order_number }}. {{ s.name }}
+    </label><br>
+    {% endfor %}
+    {% else %}
+    <p>Разделов пока нет. <a href="/teacher/sections/create">Создать раздел</a></p>
+    {% endif %}
+    {% if all_sections %}
+    <button type="submit">Сохранить</button>
+    {% endif %}
+</form>
+
 <h2>Ученики</h2>
 {% if students %}
 <table>

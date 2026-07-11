@@ -16,6 +16,18 @@
 <form method="POST" action="{% if lesson %}/teacher/lessons/{{ lesson.id }}/edit{% else %}/teacher/lessons/create{% endif %}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="form-group">
+        <label for="section_id">Раздел</label>
+        <select id="section_id" name="section_id">
+            <option value="">— Без раздела —</option>
+            {% for s in sections %}
+            <option value="{{ s.id }}"
+                {% if lesson and lesson.section_id == s.id %}selected{% endif %}>
+                {{ s.order_number }}. {{ s.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
         <label for="order_number">Порядковый номер</label>
         <input type="number" id="order_number" name="order_number" required min="1"
                value="{{ lesson.order_number if lesson else '' }}">

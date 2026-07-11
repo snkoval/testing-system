@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}{% if section %}Редактирование раздела{% else %}Новый раздел{% endif %}{% endblock %}
+
+{% block content %}
+<h1>{% if section %}Редактирование раздела{% else %}Новый раздел{% endif %}</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="flash flash-{{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<form method="POST" action="{% if section %}/teacher/sections/{{ section.id }}/edit{% else %}/teacher/sections/create{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group">
+        <label for="name">Название раздела</label>
+        <input type="text" id="name" name="name" required
+               value="{{ section.name if section else '' }}">
+    </div>
+    <div class="form-group">
+        <label for="order_number">Порядковый номер</label>
+        <input type="number" id="order_number" name="order_number" required min="1"
+               value="{{ section.order_number if section else '' }}">
+    </div>
+    <button type="submit">Сохранить</button>
+</form>
+
+<p><a href="/teacher/sections">Назад</a></p>
+{% endblock %}

@@ -5,14 +5,17 @@
 {% block content %}
 <h1>Уроки</h1>
 
-{% if lessons %}
+{% if sections %}
+{% for sname, lesson_list in sections.items() %}
+<h2>{{ sname }}</h2>
 <ul>
-    {% for l in lessons %}
+    {% for l in lesson_list %}
     <li>
         <a href="/lessons/{{ l.id }}">{{ l.order_number }}. {{ l.title }}</a>
     </li>
     {% endfor %}
 </ul>
+{% endfor %}
 {% else %}
 <p>Доступных уроков нет.</p>
 {% endif %}

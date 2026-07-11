@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Разделы{% endblock %}
+
+{% block content %}
+<h1>Разделы</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="flash flash-{{ category }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<p><a href="/teacher/sections/create">Создать раздел</a></p>
+
+{% if sections %}
+<table>
+    <thead>
+        <tr>
+            <th>№</th>
+            <th>Название</th>
+            <th>Уроков</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in sections %}
+        <tr>
+            <td>{{ s.order_number }}</td>
+            <td>{{ s.name }}</td>
+            <td>{{ s.lessons | length }}</td>
+            <td>
+                <a href="/teacher/sections/{{ s.id }}/edit">Редактировать</a>
+                <form method="post" action="/teacher/sections/{{ s.id }}/delete" style="display:inline"
+                      onsubmit="return confirm('Удалить раздел «{{ s.name }}»? Уроки останутся, но потеряют привязку к разделу.')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Разделов пока нет. Создайте первый раздел.</p>
+{% endif %}
+
+<p><a href="/teacher/">Назад</a></p>
+{% endblock %}

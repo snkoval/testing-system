@@ -5,7 +5,7 @@ import json
 from flask import Blueprint, render_template, request, redirect, session, flash, abort, send_file
 
 from app import db
-from app.models import Teacher, Group, Student, Lesson, Task, Submission
+from app.models import Teacher, Group, Student, Lesson, Task, Submission, Section, GroupSection
 from app.decorators import login_required_teacher
 from app.utils import generate_password, generate_login, is_lesson_accessible
 from app.test_files import get_tests, get_test_count, add_test, update_test, delete_test
@@ -69,7 +69,12 @@ def group_detail(group_id):
     if group is None:
         abort(404)
     students = Student.query.filter_by(group_id=group_id).order_by(Student.seq_number).all()
-    return render_template('teacher/group_detail.html', group=group, students=students)
+    all_sections = Section.query.order_by(Section.order_number).all()
+    assigned_ids = [gs.section_id for gs in
+                    GroupSection.query.filter_by(group_id=group_id).all()]
+    return render_template('teacher/group_detail.html', group=group,
+                           students=students, all_sections=all_sections,
+                           assigned_ids=assigned_ids)
 
 
 @bp.route('/groups/<int:group_id>/add', methods=['POST'])
@@ -169,6 +174,99 @@ def lessons():
     return render_template('teacher/lessons.html', lessons=lessons)
 
 
+# ── Section management ─────────────────────────────────────────────────
+
+
+@bp.route('/sections')
+@login_required_teacher
+def sections():
+    sections_list = Section.query.order_by(Section.order_number).all()
+    return render_template('teacher/sections.html', sections=sections_list)
+
+
+@bp.route('/sections/create', methods=['GET', 'POST'])
+@login_required_teacher
+def create_section():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        order_number = request.form.get('order_number', '').strip()
+
+        if not name:
+            flash('Название раздела обязательно', 'error')
+            return render_template('teacher/section_form.html')
+        if not order_number or not order_number.isdigit():
+            flash('Порядковый номер — целое число', 'error')
+            return render_template('teacher/section_form.html')
+
+        s = Section(name=name, order_number=int(order_number))
+        db.session.add(s)
+        db.session.commit()
+        flash(f'Раздел «{name}» создан', 'success')
+        return redirect('/teacher/sections')
+
+    return render_template('teacher/section_form.html')
+
+
+@bp.route('/sections/<int:section_id>/edit', methods=['GET', 'POST'])
+@login_required_teacher
+def edit_section(section_id):
+    section = db.session.get(Section, section_id)
+    if section is None:
+        abort(404)
+
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        order_number = request.form.get('order_number', '').strip()
+
+        if not name:
+            flash('Название раздела обязательно', 'error')
+            return render_template('teacher/section_form.html', section=section)
+        if not order_number or not order_number.isdigit():
+            flash('Порядковый номер — целое число', 'error')
+            return render_template('teacher/section_form.html', section=section)
+
+        section.name = name
+        section.order_number = int(order_number)
+        db.session.commit()
+        flash('Раздел обновлён', 'success')
+        return redirect('/teacher/sections')
+
+    return render_template('teacher/section_form.html', section=section)
+
+
+@bp.route('/sections/<int:section_id>/delete', methods=['POST'])
+@login_required_teacher
+def delete_section(section_id):
+    section = db.session.get(Section, section_id)
+    if section is None:
+        abort(404)
+    name = section.name
+    db.session.delete(section)
+    db.session.commit()
+    flash(f'Раздел «{name}» удалён', 'success')
+    return redirect('/teacher/sections')
+
+
+@bp.route('/groups/<int:group_id>/sections', methods=['POST'])
+@login_required_teacher
+def assign_sections(group_id):
+    group = db.session.get(Group, group_id)
+    if group is None:
+        abort(404)
+
+    GroupSection.query.filter_by(group_id=group_id).delete()
+
+    section_ids = request.form.getlist('section_ids')
+    for sid in section_ids:
+        if sid.isdigit():
+            link = GroupSection(group_id=group_id, section_id=int(sid))
+            db.session.add(link)
+
+    db.session.commit()
+    flash('Разделы назначены', 'success')
+    return redirect(f'/teacher/groups/{group_id}')
+
+
 @bp.route('/lessons/create', methods=['GET', 'POST'])
 @login_required_teacher
 def create_lesson():
@@ -176,25 +274,30 @@ def create_lesson():
         order_number = request.form.get('order_number', '').strip()
         title = request.form.get('title', '').strip()
         theory_url = request.form.get('theory_url', '').strip()
+        section_id = request.form.get('section_id', '').strip()
 
         if not order_number or not order_number.isdigit():
             flash('Порядковый номер — целое число', 'error')
-            return render_template('teacher/lesson_form.html')
+            sections = Section.query.order_by(Section.order_number).all()
+            return render_template('teacher/lesson_form.html', sections=sections)
         if not title:
             flash('Тема обязательна', 'error')
-            return render_template('teacher/lesson_form.html')
+            sections = Section.query.order_by(Section.order_number).all()
+            return render_template('teacher/lesson_form.html', sections=sections)
 
         l = Lesson(
             order_number=int(order_number),
             title=title,
-            theory_url=theory_url or None
+            theory_url=theory_url or None,
+            section_id=int(section_id) if section_id.isdigit() else None
         )
         db.session.add(l)
         db.session.commit()
         flash('Урок создан', 'success')
         return redirect('/teacher/lessons')
 
-    return render_template('teacher/lesson_form.html')
+    sections = Section.query.order_by(Section.order_number).all()
+    return render_template('teacher/lesson_form.html', sections=sections)
 
 
 @bp.route('/lessons/<int:lesson_id>/edit', methods=['GET', 'POST'])
@@ -208,22 +311,27 @@ def edit_lesson(lesson_id):
         order_number = request.form.get('order_number', '').strip()
         title = request.form.get('title', '').strip()
         theory_url = request.form.get('theory_url', '').strip()
+        section_id = request.form.get('section_id', '').strip()
 
         if not order_number or not order_number.isdigit():
             flash('Порядковый номер — целое число', 'error')
-            return render_template('teacher/lesson_form.html', lesson=lesson)
+            sections = Section.query.order_by(Section.order_number).all()
+            return render_template('teacher/lesson_form.html', lesson=lesson, sections=sections)
         if not title:
             flash('Тема обязательна', 'error')
-            return render_template('teacher/lesson_form.html', lesson=lesson)
+            sections = Section.query.order_by(Section.order_number).all()
+            return render_template('teacher/lesson_form.html', lesson=lesson, sections=sections)
 
         lesson.order_number = int(order_number)
         lesson.title = title
         lesson.theory_url = theory_url or None
+        lesson.section_id = int(section_id) if section_id.isdigit() else None
         db.session.commit()
         flash('Урок обновлён', 'success')
         return redirect('/teacher/lessons')
 
-    return render_template('teacher/lesson_form.html', lesson=lesson)
+    sections = Section.query.order_by(Section.order_number).all()
+    return render_template('teacher/lesson_form.html', lesson=lesson, sections=sections)
 
 
 @bp.route('/lessons/<int:lesson_id>/access', methods=['POST'])

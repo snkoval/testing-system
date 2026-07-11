@@ -20,6 +20,7 @@
     <thead>
         <tr>
             <th>№</th>
+            <th>Раздел</th>
             <th>Тема</th>
             <th>Статус</th>
             <th>Срок доступа</th>
@@ -30,6 +31,7 @@
         {% for l in lessons %}
         <tr>
             <td>{{ l.order_number }}</td>
+            <td>{{ l.section.name if l.section else '—' }}</td>
             <td>{{ l.title }}</td>
             <td>
                 {% if l.is_open %}

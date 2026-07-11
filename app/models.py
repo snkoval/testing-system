@@ -43,10 +43,36 @@ class Student(db.Model):
         return f'<Student {self.login}>'
 
 
+class Section(db.Model):
+    __tablename__ = 'section'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    order_number = db.Column(db.Integer, nullable=False)
+
+    lessons = db.relationship('Lesson', backref='section', lazy=True)
+    group_links = db.relationship('GroupSection', backref='section',
+                                   lazy=True, cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<Section {self.order_number}: {self.name}>'
+
+
+class GroupSection(db.Model):
+    __tablename__ = 'group_section'
+
+    group_id = db.Column(db.Integer, db.ForeignKey('group.id'),
+                         primary_key=True)
+    section_id = db.Column(db.Integer, db.ForeignKey('section.id'),
+                           primary_key=True)
+
+
 class Lesson(db.Model):
     __tablename__ = 'lesson'
 
     id = db.Column(db.Integer, primary_key=True)
+    section_id = db.Column(db.Integer, db.ForeignKey('section.id'),
+                           nullable=True)
     order_number = db.Column(db.Integer, nullable=False)
     title = db.Column(db.String(200), nullable=False)
     theory_url = db.Column(db.String(500), nullable=True)

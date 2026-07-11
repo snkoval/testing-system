@@ -3,7 +3,7 @@ import json
 from flask import Blueprint, render_template, abort, redirect, request, jsonify, session
 
 from app import db
-from app.models import Lesson, Task, Student, Submission
+from app.models import Lesson, Task, Student, Submission, GroupSection
 from app.decorators import login_required_student
 from app.utils import is_lesson_accessible
 from app.test_files import get_examples
@@ -12,20 +12,47 @@ from app.checker import check_submission
 bp = Blueprint('student', __name__)
 
 
+def _get_student_section_ids(student):
+    links = GroupSection.query.filter_by(group_id=student.group_id).all()
+    return [link.section_id for link in links]
+
+
 @bp.route('/lessons')
 @login_required_student
 def lessons():
-    all_lessons = Lesson.query.order_by(Lesson.order_number.desc()).all()
+    student = db.session.get(Student, session['student_id'])
+    section_ids = _get_student_section_ids(student)
+    if section_ids:
+        all_lessons = Lesson.query \
+            .filter(Lesson.section_id.in_(section_ids)) \
+            .order_by(Lesson.order_number.desc()).all()
+    else:
+        all_lessons = Lesson.query \
+            .order_by(Lesson.order_number.desc()).all()
     accessible = [l for l in all_lessons if is_lesson_accessible(l)]
-    return render_template('student/lessons.html', lessons=accessible)
+
+    sections = {}
+    for l in accessible:
+        sname = l.section.name if l.section else 'Уроки'
+        if sname not in sections:
+            sections[sname] = []
+        sections[sname].append(l)
+
+    return render_template('student/lessons.html', sections=sections)
 
 
 @bp.route('/lessons/<int:lesson_id>')
 @login_required_student
 def lesson(lesson_id):
+    student = db.session.get(Student, session['student_id'])
     lesson = db.session.get(Lesson, lesson_id)
     if lesson is None:
         abort(404)
+
+    section_ids = _get_student_section_ids(student)
+    if section_ids and lesson.section_id not in section_ids:
+        abort(403)
+
     if not is_lesson_accessible(lesson):
         return redirect('/lessons')
     tasks = Task.query.filter_by(lesson_id=lesson_id) \
@@ -48,9 +75,15 @@ def lesson(lesson_id):
 @bp.route('/lessons/<int:lesson_id>/tasks/<int:task_id>')
 @login_required_student
 def task_statement(lesson_id, task_id):
+    student = db.session.get(Student, session['student_id'])
     lesson = db.session.get(Lesson, lesson_id)
     if lesson is None:
         abort(404)
+
+    section_ids = _get_student_section_ids(student)
+    if section_ids and lesson.section_id not in section_ids:
+        abort(403)
+
     if not is_lesson_accessible(lesson):
         abort(404)
     task = db.session.get(Task, task_id)
