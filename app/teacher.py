@@ -10,7 +10,7 @@ from app.decorators import login_required_teacher
 from app.utils import generate_password, generate_login, is_lesson_accessible
 from app.test_files import get_tests, get_test_count, add_test, update_test, delete_test
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 bp = Blueprint('teacher', __name__, url_prefix='/teacher')
 
@@ -647,7 +647,10 @@ def _build_results_matrix(group_id):
                     passed = result.get('passed', 0)
                     total = result.get('total_tests', test_counts[t.id])
                     if result.get('status') == 'ok':
-                        row['cells'].append('OK')
+                        dt = sub.submitted_at
+                        if dt.tzinfo is not None:
+                            dt = dt.astimezone(timezone(timedelta(hours=3)))
+                        row['cells'].append(f'OK, {dt:%d:%m:%Y %H:%M}')
                     else:
                         row['cells'].append(f'{passed}/{total}')
                 except (json.JSONDecodeError, TypeError):
