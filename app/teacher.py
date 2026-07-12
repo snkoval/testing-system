@@ -1,8 +1,10 @@
 import re
 import io
 import json
+import uuid
+import os
 
-from flask import Blueprint, render_template, request, redirect, session, flash, abort, send_file
+from flask import Blueprint, render_template, request, redirect, session, flash, abort, send_file, jsonify, current_app
 
 from app import db
 from app.models import Teacher, Group, Student, Lesson, Task, Submission, Section, GroupSection
@@ -503,6 +505,32 @@ def delete_task(task_id):
     db.session.commit()
     flash(f'Задача {letter} удалена', 'success')
     return redirect(f'/teacher/lessons/{lesson_id}/tasks')
+
+
+# ── Image upload ───────────────────────────────────────────────────────
+
+
+@bp.route('/upload-image', methods=['POST'])
+@login_required_teacher
+def upload_image():
+    if 'image' not in request.files:
+        return jsonify({'error': 'Файл не загружен'}), 400
+
+    file = request.files['image']
+    if not file.filename:
+        return jsonify({'error': 'Пустое имя файла'}), 400
+
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ('.jpg', '.jpeg', '.png'):
+        return jsonify({'error': 'Допустимы только JPG и PNG'}), 400
+
+    filename = uuid.uuid4().hex + ext
+    upload_dir = os.path.join(current_app.static_folder, 'task_images')
+    os.makedirs(upload_dir, exist_ok=True)
+    file.save(os.path.join(upload_dir, filename))
+
+    url = '/static/task_images/' + filename
+    return jsonify({'url': url})
 
 
 # ── Test file management ───────────────────────────────────────────────

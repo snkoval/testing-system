@@ -23,18 +23,30 @@
     </div>
     <div class="form-group">
         <label for="problem_text">Текст условия</label>
+        <div class="img-upload-bar">
+            <button type="button" onclick="uploadImage('problem_text')">Вставить картинку</button>
+        </div>
         <textarea id="problem_text" name="problem_text" rows="5" required>{{ task.problem_text if task else '' }}</textarea>
     </div>
     <div class="form-group">
         <label for="input_description">Описание входных данных</label>
+        <div class="img-upload-bar">
+            <button type="button" onclick="uploadImage('input_description')">Вставить картинку</button>
+        </div>
         <textarea id="input_description" name="input_description" rows="3" required>{{ task.input_description if task else '' }}</textarea>
     </div>
     <div class="form-group">
         <label for="output_description">Описание результата</label>
+        <div class="img-upload-bar">
+            <button type="button" onclick="uploadImage('output_description')">Вставить картинку</button>
+        </div>
         <textarea id="output_description" name="output_description" rows="3" required>{{ task.output_description if task else '' }}</textarea>
     </div>
     <div class="form-group">
         <label for="notes">Пояснения (необязательно)</label>
+        <div class="img-upload-bar">
+            <button type="button" onclick="uploadImage('notes')">Вставить картинку</button>
+        </div>
         <textarea id="notes" name="notes" rows="3">{{ task.notes if task and task.notes else '' }}</textarea>
     </div>
     <div class="form-group">
@@ -51,4 +63,47 @@
 </form>
 
 <p><a href="{% if task %}/teacher/lessons/{{ task.lesson_id }}/tasks{% elif lesson %}/teacher/lessons/{{ lesson.id }}/tasks{% else %}/teacher/lessons{% endif %}">Назад</a></p>
+
+<input type="file" id="hidden-file-input" accept="image/jpeg,image/png" style="display:none">
+
+<script>
+function uploadImage(textareaId) {
+    const fileInput = document.getElementById('hidden-file-input');
+    fileInput.value = '';
+    fileInput.onchange = function() {
+        const file = this.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('image', file);
+        const btn = event.target || document.querySelector('[onclick*="' + textareaId + '"]');
+        if (btn) { btn.disabled = true; btn.textContent = 'Загрузка…'; }
+        fetch('/teacher/upload-image', {
+            method: 'POST',
+            body: formData,
+            headers: {'X-CSRFToken': '{{ csrf_token() }}'}
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) { alert(data.error); return; }
+            const ta = document.getElementById(textareaId);
+            const marker = '[[img:' + data.url + ']]';
+            const pos = ta.selectionStart;
+            ta.value = ta.value.substring(0, pos) + marker + ta.value.substring(pos);
+            ta.focus();
+            ta.setSelectionRange(pos + marker.length, pos + marker.length);
+        })
+        .catch(() => alert('Ошибка загрузки'))
+        .finally(() => { if (btn) { btn.disabled = false; btn.textContent = 'Вставить картинку'; } });
+    };
+    fileInput.click();
+}
+</script>
+<style>
+.img-upload-bar { margin-bottom: 4px; }
+.img-upload-bar button {
+    font-size: 13px; padding: 2px 10px;
+    background: var(--light-bg); border: 1px solid var(--border-color);
+    border-radius: 3px; cursor: pointer;
+}
+</style>
 {% endblock %}

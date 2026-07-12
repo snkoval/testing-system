@@ -28,17 +28,17 @@
 
     <section class="statement-section" id="section-problem">
         <h3>Условие</h3>
-        <p>{{ task.problem_text }}</p>
+        <p>{{ task.problem_text | render_text }}</p>
     </section>
 
     <section class="statement-section" id="section-input">
         <h3>Входные данные</h3>
-        <p>{{ task.input_description }}</p>
+        <p>{{ task.input_description | render_text }}</p>
     </section>
 
     <section class="statement-section" id="section-output">
         <h3>Результат</h3>
-        <p>{{ task.output_description }}</p>
+        <p>{{ task.output_description | render_text }}</p>
     </section>
 
     {% if examples %}
@@ -66,7 +66,7 @@
     {% if task.notes %}
     <section class="statement-section" id="section-notes">
         <h3>Пояснения</h3>
-        <p>{{ task.notes }}</p>
+        <p>{{ task.notes | render_text }}</p>
     </section>
     {% endif %}
 </div>

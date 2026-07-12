@@ -1,12 +1,29 @@
 import os
+import re
 
 from flask import Flask, render_template, request, abort
 from flask_sqlalchemy import SQLAlchemy
+from markupsafe import Markup
 
 from app.config import Config, TestConfig
 from app.utils import is_lesson_accessible, generate_csrf_token, validate_csrf_token
 
 db = SQLAlchemy()
+
+
+def render_text(text):
+    """Escape HTML, then convert [[img:url]] markers to <img> tags and newlines to <br>."""
+    if not text:
+        return ''
+    from markupsafe import escape
+    safe = str(escape(text))
+    safe = re.sub(
+        r'\[\[img:(https?://[^\]]+|/[^\]]+)\]\]',
+        r'<img src="\1" class="task-img" loading="lazy">',
+        safe,
+    )
+    safe = safe.replace('\n', '<br>\n')
+    return Markup(safe)
 
 
 def create_app(config_class=Config):
@@ -20,6 +37,8 @@ def create_app(config_class=Config):
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     db.init_app(app)
+
+    app.jinja_env.filters['render_text'] = render_text
 
     @app.context_processor
     def inject_globals():
