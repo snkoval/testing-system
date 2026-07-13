@@ -132,22 +132,24 @@ button:hover, .btn:hover {
 .lesson-page {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 40px);
 }
 
 .lesson-header {
     flex-shrink: 0;
+    margin-bottom: 10px;
 }
 
 .lesson-layout {
     display: flex;
     gap: 10px;
-    flex: 1;
-    min-height: 0;
+    align-items: flex-start;
 }
 
 .frame-tasks {
     flex: 0 0 220px;
+    position: sticky;
+    top: 10px;
+    max-height: calc(100vh - 20px);
     border: 1px solid var(--border-color);
     border-radius: 3px;
     padding: 10px;
@@ -192,22 +194,20 @@ button:hover, .btn:hover {
 }
 
 .frame-statement {
-    flex: 1;
     border: 1px solid var(--border-color);
     border-radius: 3px;
     padding: 15px;
-    overflow-y: auto;
     background-color: #fff;
 }
 
 .frame-editor {
-    flex: 0 0 300px;
     border: 1px solid var(--border-color);
     border-radius: 3px;
     padding: 10px;
     background-color: #fff;
     display: flex;
     flex-direction: column;
+    min-height: 300px;
 }
 
 .statement-header h2 {
@@ -247,7 +247,7 @@ button:hover, .btn:hover {
 .editor-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
     gap: 8px;
 }
 
@@ -293,8 +293,6 @@ button:hover, .btn:hover {
 
 /* CodeMirror */
 .CodeMirror {
-    flex: 1;
-    height: 100%;
     border: 1px solid var(--border-color);
     border-radius: 3px;
     font-family: "Consolas", "Courier New", monospace;
