@@ -69,7 +69,8 @@ def lesson(lesson_id):
     return render_template('student/lesson.html', lesson=lesson,
                            tasks=tasks, first_task=first_task,
                            task=first_task, examples=examples,
-                           submission=submission)
+                           submission=submission,
+                           allowed_languages=lesson.allowed_languages or 'python,cpp')
 
 
 @bp.route('/lessons/<int:lesson_id>/tasks/<int:task_id>')

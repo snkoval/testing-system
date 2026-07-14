@@ -79,6 +79,8 @@ class Lesson(db.Model):
     is_open = db.Column(db.Boolean, nullable=False, default=False)
     access_days = db.Column(db.Integer, nullable=True)
     opened_at = db.Column(db.DateTime, nullable=True)
+    allowed_languages = db.Column(db.String(20), nullable=False,
+                                  default='python,cpp')
 
     tasks = db.relationship('Task', backref='lesson', lazy=True,
                             cascade='all, delete-orphan')

@@ -129,9 +129,52 @@ button:hover, .btn:hover {
     font-weight: bold;
 }
 
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 40px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0;
+    line-height: 1;
+}
+
 .lesson-page {
     display: flex;
     flex-direction: column;
+}
+
+.lesson-topnav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.lesson-topnav .back-btn {
+    font-size: 16px;
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.lesson-topnav .logout-link {
+    font-size: 14px;
+    text-decoration: none;
+    color: #888;
 }
 
 .lesson-header {
@@ -198,6 +241,7 @@ button:hover, .btn:hover {
     border-radius: 3px;
     padding: 15px;
     background-color: #fff;
+    min-height: 300px;
 }
 
 .frame-editor {
@@ -258,6 +302,16 @@ button:hover, .btn:hover {
     flex-shrink: 0;
 }
 
+.editor-controls .btn-reset {
+    margin-left: auto;
+    font-size: 13px;
+    padding: 2px 10px;
+    background: var(--light-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    cursor: pointer;
+}
+
 .editor-controls label {
     font-weight: bold;
     white-space: nowrap;
@@ -278,11 +332,9 @@ button:hover, .btn:hover {
 }
 
 .results-area {
-    flex: 0 0 80px;
     border: 1px solid var(--border-color);
     border-radius: 3px;
     padding: 8px;
-    overflow-y: auto;
     background-color: var(--light-bg);
     font-size: 14px;
 }
@@ -301,7 +353,7 @@ button:hover, .btn:hover {
 
 .editor-container .CodeMirror {
     flex: 1;
-    min-height: 200px;
+    height: 350px;
 }
 
 /* Task images */
@@ -310,4 +362,16 @@ button:hover, .btn:hover {
     height: auto;
     border-radius: 4px;
     margin: 8px 0;
+}
+
+.lang-checkboxes {
+    display: flex;
+    gap: 20px;
+}
+
+.lang-checkboxes label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: normal;
 }

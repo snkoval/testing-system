@@ -72,6 +72,11 @@ def create_app(config_class=Config):
 
     @app.route('/')
     def index():
-        return render_template('base.html')
+        from flask import session, redirect
+        if 'teacher_id' in session:
+            return redirect('/teacher/')
+        if 'student_id' in session:
+            return redirect('/lessons')
+        return redirect('/login')
 
     return app

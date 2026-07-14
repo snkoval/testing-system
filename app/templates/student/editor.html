@@ -2,9 +2,14 @@
     <div class="editor-controls">
         <label for="language-select">Язык:</label>
         <select id="language-select" name="language" onchange="changeLanguage()">
+            {% if 'python' in allowed_languages %}
             <option value="python">Python</option>
+            {% endif %}
+            {% if 'cpp' in allowed_languages %}
             <option value="cpp">C++ (GNU GCC Compiler)</option>
+            {% endif %}
         </select>
+        <button type="button" class="btn-reset" onclick="resetCode()">Сбросить</button>
     </div>
 
     <textarea id="code-editor" name="code" rows="15"

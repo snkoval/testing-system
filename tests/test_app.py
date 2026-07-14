@@ -5,9 +5,9 @@ class TestAppStartup:
     def test_app_has_sqlalchemy_initialized(self, app):
         assert 'sqlalchemy' in app.extensions
 
-    def test_index_page_returns_200(self, client):
+    def test_index_page_redirects(self, client):
         response = client.get('/')
-        assert response.status_code == 200
+        assert response.status_code == 302
 
     def test_config_has_required_settings(self, app):
         assert app.config['SECRET_KEY'] is not None

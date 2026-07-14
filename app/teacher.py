@@ -269,6 +269,17 @@ def assign_sections(group_id):
     return redirect(f'/teacher/groups/{group_id}')
 
 
+def _parse_languages(form):
+    langs = []
+    if form.get('lang_python'):
+        langs.append('python')
+    if form.get('lang_cpp'):
+        langs.append('cpp')
+    if not langs:
+        langs = ['python', 'cpp']
+    return ','.join(langs)
+
+
 @bp.route('/lessons/create', methods=['GET', 'POST'])
 @login_required_teacher
 def create_lesson():
@@ -291,7 +302,8 @@ def create_lesson():
             order_number=int(order_number),
             title=title,
             theory_url=theory_url or None,
-            section_id=int(section_id) if section_id.isdigit() else None
+            section_id=int(section_id) if section_id.isdigit() else None,
+            allowed_languages=_parse_languages(request.form),
         )
         db.session.add(l)
         db.session.commit()
@@ -328,6 +340,7 @@ def edit_lesson(lesson_id):
         lesson.title = title
         lesson.theory_url = theory_url or None
         lesson.section_id = int(section_id) if section_id.isdigit() else None
+        lesson.allowed_languages = _parse_languages(request.form)
         db.session.commit()
         flash('Урок обновлён', 'success')
         return redirect('/teacher/lessons')
