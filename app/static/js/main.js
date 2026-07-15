@@ -4,10 +4,10 @@ document.addEventListener('DOMContentLoaded', function () {
             var input = this.parentElement.querySelector('input');
             if (input.type === 'password') {
                 input.type = 'text';
-                this.textContent = '🙈';
+                this.textContent = 'Скрыть';
             } else {
                 input.type = 'password';
-                this.textContent = '👁';
+                this.textContent = 'Показать';
             }
         });
     });
