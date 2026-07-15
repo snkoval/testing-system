@@ -31,9 +31,11 @@ def _tree_rss_kb(process):
 
 
 def _run_command(cmd, test_input, time_limit, memory_limit):
+    no_input = test_input is None
+    stdin = subprocess.DEVNULL if no_input else subprocess.PIPE
     proc = subprocess.Popen(
         cmd,
-        stdin=subprocess.PIPE,
+        stdin=stdin,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -43,7 +45,7 @@ def _run_command(cmd, test_input, time_limit, memory_limit):
 
     try:
         stdout, stderr = proc.communicate(
-            input=test_input, timeout=0.1
+            input=test_input if not no_input else None, timeout=0.1
         )
         return stdout, None, proc.returncode
     except subprocess.TimeoutExpired:
@@ -160,6 +162,8 @@ def check_submission(code, language, task_id):
 
     passed_count = 0
     for num, test_input, expected in tests:
+        if not test_input.strip():
+            test_input = None
         if language == 'python':
             output, error, retcode = _run_python(code, test_input,
                                                   time_limit, memory_limit)
