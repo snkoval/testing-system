@@ -75,6 +75,7 @@ function uploadImage(textareaId) {
         if (!file) return;
         const formData = new FormData();
         formData.append('image', file);
+        formData.append('csrf_token', '{{ csrf_token() }}');
         const btn = event.target || document.querySelector('[onclick*="' + textareaId + '"]');
         if (btn) { btn.disabled = true; btn.textContent = 'Загрузка…'; }
         fetch('/teacher/upload-image', {
