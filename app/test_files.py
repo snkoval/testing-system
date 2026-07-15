@@ -52,10 +52,10 @@ def get_test_count(task_id):
     return len(get_tests(task_id))
 
 
-def get_examples(task_id):
+def get_examples(task_id, count=2):
     tests = get_tests(task_id)
     examples = []
-    for i in range(min(2, len(tests))):
+    for i in range(min(count, len(tests))):
         num, inp, out = tests[i]
         examples.append((inp, out))
     return examples

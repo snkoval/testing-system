@@ -443,6 +443,7 @@ def create_task(lesson_id):
 
         time_limit = int(time_limit_raw) if time_limit_raw.isdigit() else 1
         memory_limit = int(memory_limit_raw) if memory_limit_raw.isdigit() else 256
+        show_examples = int(request.form.get('show_examples', '2'))
 
         t = Task(
             lesson_id=lesson_id,
@@ -454,6 +455,7 @@ def create_task(lesson_id):
             notes=notes or None,
             time_limit=time_limit,
             memory_limit=memory_limit,
+            show_examples=show_examples,
         )
         db.session.add(t)
         db.session.commit()
@@ -499,6 +501,7 @@ def edit_task(task_id):
         task.notes = notes or None
         task.time_limit = int(time_limit_raw) if time_limit_raw.isdigit() else 1
         task.memory_limit = int(memory_limit_raw) if memory_limit_raw.isdigit() else 256
+        task.show_examples = int(request.form.get('show_examples', '2'))
         db.session.commit()
         flash('Задача обновлена', 'success')
         return redirect(f'/teacher/lessons/{task.lesson_id}/tasks')

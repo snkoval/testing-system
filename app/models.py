@@ -102,6 +102,7 @@ class Task(db.Model):
     notes = db.Column(db.Text, nullable=True)
     time_limit = db.Column(db.Integer, nullable=False, default=1)
     memory_limit = db.Column(db.Integer, nullable=False, default=256)
+    show_examples = db.Column(db.Integer, nullable=False, default=2)
 
     submissions = db.relationship('Submission', backref='task', lazy=True,
                                   cascade='all, delete-orphan')

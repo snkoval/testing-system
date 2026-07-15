@@ -59,6 +59,14 @@
         <input type="number" id="memory_limit" name="memory_limit" min="1"
                value="{{ task.memory_limit if task else 256 }}">
     </div>
+    <div class="form-group">
+        <label for="show_examples">Показывать примеры тестов</label>
+        <select id="show_examples" name="show_examples">
+            <option value="0" {% if task and task.show_examples == 0 %}selected{% endif %}>Не показывать</option>
+            <option value="1" {% if task and task.show_examples == 1 %}selected{% endif %}>Показывать 1</option>
+            <option value="2" {% if not task or task.show_examples == 2 %}selected{% endif %}>Показывать 2</option>
+        </select>
+    </div>
     <button type="submit">Сохранить</button>
 </form>
 

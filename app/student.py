@@ -58,7 +58,7 @@ def lesson(lesson_id):
     tasks = Task.query.filter_by(lesson_id=lesson_id) \
         .order_by(Task.letter_index).all()
     first_task = tasks[0] if tasks else None
-    examples = get_examples(first_task.id) if first_task else []
+    examples = get_examples(first_task.id, first_task.show_examples) if first_task else []
 
     submission = None
     if first_task:
@@ -90,7 +90,7 @@ def task_statement(lesson_id, task_id):
     task = db.session.get(Task, task_id)
     if task is None or task.lesson_id != lesson_id:
         abort(404)
-    examples = get_examples(task_id)
+    examples = get_examples(task_id, task.show_examples)
 
     submission = Submission.query.filter_by(
         student_id=session['student_id'], task_id=task_id
