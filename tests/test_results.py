@@ -6,7 +6,8 @@ import pytest
 from openpyxl import load_workbook
 
 from app import db
-from app.models import Teacher, Group, Student, Lesson, Task, Submission
+from app.models import (Teacher, Group, Student, Lesson, Task, Submission,
+                        Section, GroupSection)
 from app.test_files import add_test
 from werkzeug.security import generate_password_hash
 
@@ -193,3 +194,47 @@ class TestExportExcel:
     def test_export_invalid_group_returns_404(self, logged_in_client):
         resp = logged_in_client.get('/teacher/results/export?group=9999')
         assert resp.status_code == 404
+
+
+# ── Filtering results by sections assigned to group ────────────────────
+
+
+class TestResultsSectionFilter:
+    def test_lesson_outside_assigned_sections_hidden(self, app, logged_in_client,
+                                                     full_setup):
+        with app.app_context():
+            sec = Section(name='Раздел 1', order_number=1)
+            db.session.add(sec)
+            db.session.commit()
+            db.session.add(GroupSection(group_id=full_setup, section_id=sec.id))
+            db.session.commit()
+        resp = logged_in_client.get(f'/teacher/results?group={full_setup}')
+        assert 'Сумма' not in resp.data.decode('utf-8')
+
+    def test_lesson_in_assigned_section_shown(self, app, logged_in_client,
+                                              full_setup):
+        with app.app_context():
+            sec = Section(name='Раздел 1', order_number=1)
+            db.session.add(sec)
+            db.session.commit()
+            lesson = Lesson.query.first()
+            lesson.section_id = sec.id
+            db.session.add(GroupSection(group_id=full_setup, section_id=sec.id))
+            db.session.commit()
+        resp = logged_in_client.get(f'/teacher/results?group={full_setup}')
+        assert 'Сумма' in resp.data.decode('utf-8')
+
+    def test_export_filtered_by_assigned_sections(self, app, logged_in_client,
+                                                  full_setup):
+        with app.app_context():
+            sec = Section(name='Раздел 1', order_number=1)
+            db.session.add(sec)
+            db.session.commit()
+            db.session.add(GroupSection(group_id=full_setup, section_id=sec.id))
+            db.session.commit()
+        resp = logged_in_client.get(
+            f'/teacher/results/export?group={full_setup}')
+        wb = load_workbook(io.BytesIO(resp.data))
+        ws = wb.active
+        header_text = ' '.join(str(c.value) for c in ws[1] if c.value)
+        assert 'Сумма' not in header_text

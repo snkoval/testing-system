@@ -323,3 +323,101 @@ class TestDeleteGroup:
         logged_in_client.post(f'/teacher/groups/{gid}/delete')
         with app.app_context():
             assert db.session.get(Student, sid) is None
+
+
+class TestDeleteStudent:
+    def test_delete_student(self, app, logged_in_client):
+        with app.app_context():
+            g = Group(name='7A_1gr')
+            db.session.add(g)
+            db.session.commit()
+            s = Student(
+                group_id=g.id, login='7A_1gr_1',
+                password_hash='h', password_plain='abc123',
+                last_name='А', first_name='А', seq_number=1
+            )
+            db.session.add(s)
+            db.session.commit()
+            sid = s.id
+        response = logged_in_client.post(f'/teacher/students/{sid}/delete')
+        assert response.status_code == 302
+        with app.app_context():
+            assert db.session.get(Student, sid) is None
+
+    def test_delete_student_404(self, logged_in_client):
+        response = logged_in_client.post('/teacher/students/9999/delete')
+        assert response.status_code == 404
+
+
+class TestTransferStudent:
+    def _setup_groups_with_student(self):
+        g1 = Group(name='7A_1gr')
+        g2 = Group(name='7A_2gr')
+        db.session.add_all([g1, g2])
+        db.session.commit()
+        s = Student(
+            group_id=g1.id, login='7A_1gr_1',
+            password_hash='h', password_plain='abc123',
+            last_name='А', first_name='А', seq_number=1
+        )
+        db.session.add(s)
+        db.session.commit()
+        return s.id, g1.id, g2.id
+
+    def test_transfer_moves_to_new_group(self, app, logged_in_client):
+        with app.app_context():
+            sid, _, target_gid = self._setup_groups_with_student()
+        response = logged_in_client.post(f'/teacher/students/{sid}/transfer',
+                                         data={'target_group_id': str(target_gid)})
+        assert response.status_code == 302
+        with app.app_context():
+            s = db.session.get(Student, sid)
+            assert s.group_id == target_gid
+            assert s.login == '7A_2gr_1'
+            assert s.seq_number == 1
+
+    def test_transfer_keeps_password(self, app, logged_in_client):
+        with app.app_context():
+            sid, _, target_gid = self._setup_groups_with_student()
+        logged_in_client.post(f'/teacher/students/{sid}/transfer',
+                              data={'target_group_id': str(target_gid)})
+        with app.app_context():
+            s = db.session.get(Student, sid)
+            assert s.password_plain == 'abc123'
+
+    def test_transfer_assigns_next_seq(self, app, logged_in_client):
+        with app.app_context():
+            sid, _, target_gid = self._setup_groups_with_student()
+            existing = Student(group_id=target_gid, login='7A_2gr_1',
+                               password_hash='h', password_plain='x',
+                               last_name='Б', first_name='Б', seq_number=1)
+            db.session.add(existing)
+            db.session.commit()
+        logged_in_client.post(f'/teacher/students/{sid}/transfer',
+                              data={'target_group_id': str(target_gid)})
+        with app.app_context():
+            s = db.session.get(Student, sid)
+            assert s.seq_number == 2
+            assert s.login == '7A_2gr_2'
+
+    def test_transfer_same_group_fails(self, app, logged_in_client):
+        with app.app_context():
+            sid, same_gid, _ = self._setup_groups_with_student()
+        response = logged_in_client.post(f'/teacher/students/{sid}/transfer',
+                                         data={'target_group_id': str(same_gid)})
+        assert response.status_code == 302
+        with app.app_context():
+            s = db.session.get(Student, sid)
+            assert s.group_id == same_gid
+            assert s.login == '7A_1gr_1'
+
+    def test_transfer_invalid_group_fails(self, app, logged_in_client):
+        with app.app_context():
+            sid, old_gid, _ = self._setup_groups_with_student()
+        response = logged_in_client.post(f'/teacher/students/{sid}/transfer',
+                                         data={'target_group_id': '9999'})
+        assert response.status_code == 302
+        with app.app_context():
+            s = db.session.get(Student, sid)
+            assert s.group_id == old_gid
+            assert s.login == '7A_1gr_1'

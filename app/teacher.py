@@ -74,9 +74,12 @@ def group_detail(group_id):
     all_sections = Section.query.order_by(Section.order_number).all()
     assigned_ids = [gs.section_id for gs in
                     GroupSection.query.filter_by(group_id=group_id).all()]
+    other_groups = Group.query.filter(Group.id != group_id) \
+        .order_by(Group.name).all()
     return render_template('teacher/group_detail.html', group=group,
                            students=students, all_sections=all_sections,
-                           assigned_ids=assigned_ids)
+                           assigned_ids=assigned_ids,
+                           other_groups=other_groups)
 
 
 @bp.route('/groups/<int:group_id>/add', methods=['POST'])
@@ -626,6 +629,48 @@ def reset_student_password(student_id):
     return redirect(f'/teacher/groups/{student.group_id}')
 
 
+@bp.route('/students/<int:student_id>/delete', methods=['POST'])
+@login_required_teacher
+def delete_student(student_id):
+    student = db.session.get(Student, student_id)
+    if student is None:
+        abort(404)
+
+    group_id = student.group_id
+    login = student.login
+    db.session.delete(student)
+    db.session.commit()
+    flash(f'Ученик {login} удалён', 'success')
+    return redirect(f'/teacher/groups/{group_id}')
+
+
+@bp.route('/students/<int:student_id>/transfer', methods=['POST'])
+@login_required_teacher
+def transfer_student(student_id):
+    student = db.session.get(Student, student_id)
+    if student is None:
+        abort(404)
+
+    target_id = request.form.get('target_group_id', '').strip()
+    target = db.session.get(Group, int(target_id)) if target_id.isdigit() else None
+    if target is None:
+        flash('Группа не найдена', 'error')
+        return redirect(f'/teacher/groups/{student.group_id}')
+    if target.id == student.group_id:
+        flash('Ученик уже состоит в этой группе', 'error')
+        return redirect(f'/teacher/groups/{student.group_id}')
+
+    old_group_id = student.group_id
+    max_seq = db.session.query(db.func.max(Student.seq_number)) \
+        .filter_by(group_id=target.id).scalar() or 0
+    student.group_id = target.id
+    student.seq_number = max_seq + 1
+    student.login = generate_login(target.name, student.seq_number)
+    db.session.commit()
+    flash(f'Ученик переведён в группу {target.name}. Новый логин: {student.login}', 'success')
+    return redirect(f'/teacher/groups/{old_group_id}')
+
+
 @bp.route('/settings', methods=['GET', 'POST'])
 @login_required_teacher
 def settings():
@@ -663,7 +708,14 @@ def _build_results_matrix(group_id):
     students = Student.query.filter_by(group_id=group_id) \
         .order_by(Student.seq_number).all()
 
-    lessons = Lesson.query.order_by(Lesson.order_number).all()
+    section_ids = [gs.section_id for gs in
+                   GroupSection.query.filter_by(group_id=group_id).all()]
+    if section_ids:
+        lessons = Lesson.query \
+            .filter(Lesson.section_id.in_(section_ids)) \
+            .order_by(Lesson.order_number).all()
+    else:
+        lessons = Lesson.query.order_by(Lesson.order_number).all()
     tasks = []
     for lesson in lessons:
         lesson_tasks = Task.query.filter_by(lesson_id=lesson.id) \
