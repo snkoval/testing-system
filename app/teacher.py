@@ -175,7 +175,11 @@ def delete_group(group_id):
 @bp.route('/lessons')
 @login_required_teacher
 def lessons():
-    lessons = Lesson.query.order_by(Lesson.order_number).all()
+    lessons = Lesson.query.all()
+    lessons.sort(key=lambda l: (
+        (0, l.section.name.casefold()) if l.section else (1, ''),
+        l.order_number
+    ))
     return render_template('teacher/lessons.html', lessons=lessons)
 
 

@@ -22,22 +22,18 @@ def _get_student_section_ids(student):
 def lessons():
     student = db.session.get(Student, session['student_id'])
     section_ids = _get_student_section_ids(student)
+    query = Lesson.query
     if section_ids:
-        all_lessons = Lesson.query \
-            .filter(Lesson.section_id.in_(section_ids)) \
-            .order_by(Lesson.order_number.desc()).all()
-    else:
-        all_lessons = Lesson.query \
-            .order_by(Lesson.order_number.desc()).all()
+        query = query.filter(Lesson.section_id.in_(section_ids))
+    all_lessons = query.order_by(Lesson.order_number).all()
     accessible = [l for l in all_lessons if is_lesson_accessible(l)]
 
-    sections = {}
+    grouped = {}
     for l in accessible:
         sname = l.section.name if l.section else 'Уроки'
-        if sname not in sections:
-            sections[sname] = []
-        sections[sname].append(l)
+        grouped.setdefault(sname, []).append(l)
 
+    sections = {name: grouped[name] for name in sorted(grouped, key=str.casefold)}
     return render_template('student/lessons.html', sections=sections)
 
 

@@ -3,7 +3,7 @@ from datetime import datetime, timezone, timedelta
 import pytest
 
 from app import db
-from app.models import Teacher, Group, Student, Lesson
+from app.models import Teacher, Group, Student, Lesson, Section
 from app.utils import is_lesson_accessible
 from werkzeug.security import generate_password_hash
 
@@ -73,6 +73,26 @@ class TestLessonList:
             db.session.commit()
         response = logged_in_client.get('/teacher/lessons')
         assert b'\xd0\x9f\xd0\xb5\xd1\x80\xd0\xb5\xd0\xbc\xd0\xb5\xd0\xbd\xd0\xbd\xd1\x8b\xd0\xb5' in response.data
+
+    def test_lessons_sorted_by_section_then_order(self, app, logged_in_client):
+        with app.app_context():
+            s1 = Section(name='Циклы', order_number=1)
+            s2 = Section(name='Ветвления', order_number=2)
+            db.session.add_all([s1, s2])
+            db.session.commit()
+            l_beta_2 = Lesson(order_number=2, title='for', section_id=s1.id)
+            l_beta_1 = Lesson(order_number=1, title='while', section_id=s1.id)
+            l_alpha_1 = Lesson(order_number=1, title='if', section_id=s2.id)
+            l_no_section = Lesson(order_number=1, title='Без раздела')
+            db.session.add_all([l_beta_2, l_beta_1, l_alpha_1, l_no_section])
+            db.session.commit()
+            ids = [l_alpha_1.id, l_beta_1.id, l_beta_2.id, l_no_section.id]
+        response = logged_in_client.get('/teacher/lessons')
+        assert response.status_code == 200
+        html = response.data.decode('utf-8')
+        positions = [html.find(f'/teacher/lessons/{i}/tasks') for i in ids]
+        assert -1 not in positions
+        assert positions == sorted(positions)
 
 
 class TestCreateLesson:
@@ -233,6 +253,38 @@ class TestStudentLessonList:
         response = client.get('/lessons')
         assert response.status_code == 200
         assert b'\xd0\x9e\xd1\x82\xd0\xba\xd1\x80\xd1\x8b\xd1\x82\xd1\x8b\xd0\xb9 \xd1\x83\xd1\x80\xd0\xbe\xd0\xba' in response.data
+
+    def test_student_lessons_sorted_by_section_then_order(self, app, client):
+        with app.app_context():
+            g = Group(name='7A_1gr')
+            db.session.add(g)
+            db.session.commit()
+            s = Student(
+                group_id=g.id, login='7A_1gr_1',
+                password_hash=generate_password_hash('abc123'),
+                password_plain='abc123',
+                last_name='Иванов', first_name='Иван', seq_number=1
+            )
+            db.session.add(s)
+            s1 = Section(name='Циклы', order_number=1)
+            s2 = Section(name='Ветвления', order_number=2)
+            db.session.add_all([s1, s2])
+            db.session.commit()
+            opened = dict(is_open=True, access_days=None,
+                          opened_at=datetime.now(timezone.utc))
+            l_beta_2 = Lesson(order_number=2, title='for', section_id=s1.id, **opened)
+            l_beta_1 = Lesson(order_number=1, title='while', section_id=s1.id, **opened)
+            l_alpha_1 = Lesson(order_number=1, title='if', section_id=s2.id, **opened)
+            db.session.add_all([l_beta_2, l_beta_1, l_alpha_1])
+            db.session.commit()
+            ids = [l_alpha_1.id, l_beta_1.id, l_beta_2.id]
+        client.post('/login', data={'login': '7A_1gr_1', 'password': 'abc123'})
+        response = client.get('/lessons')
+        assert response.status_code == 200
+        html = response.data.decode('utf-8')
+        positions = [html.find(f'/lessons/{i}') for i in ids]
+        assert -1 not in positions
+        assert positions == sorted(positions)
 
     def test_student_does_not_see_closed_lesson(self, app, client):
         with app.app_context():
